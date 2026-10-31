@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 回归测试
+        run: npm test
+
+      - name: 检查页面资源是否齐全
+        run: |
+          set -e
+          for f in index.html cards.js custom-templates.js icon.svg; do
+            test -f "$f" || { echo "缺少文件: $f"; exit 1; }
+          done
+          echo "静态资源齐全"
+
+      - name: 检查没有硬编码的本地路径
+        run: |
+          if grep -rn --include='*.js' --include='*.html' -E '/app/node_modules|/home/node|127\.0\.0\.1:[0-9]{4}' . --exclude-dir=node_modules; then
+            echo "发现硬编码路径"; exit 1
+          fi
+          echo "没有硬编码路径"
