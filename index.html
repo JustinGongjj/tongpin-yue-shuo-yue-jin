@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#080b14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>同频 · 越说越近</title>
+<link rel="icon" type="image/svg+xml" href="./icon.svg" />
+<style>
+:root{
+  --bg:#070a11;
+  --ink:#f3ece4;
+  --ink-2:#bdb3aa;
+  --ink-3:#7c746e;
+  --gold:#d9b48f;
+  --gold-2:#efdcc2;
+  --rose:#cf8d8d;
+  --line:rgba(217,180,143,.20);
+  --line-2:rgba(217,180,143,.38);
+  --panel:rgba(255,255,255,.030);
+  --panel-2:rgba(255,255,255,.055);
+  --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",Georgia,serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#motifs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.motif{position:absolute;opacity:0;will-change:transform,opacity;filter:blur(.2px)}
+.motif svg{display:block;width:100%;height:100%}
+@keyframes mFloat{
+  0%{transform:translate3d(0,6vh,0) rotate(0deg);opacity:0}
+  10%{opacity:.55}
+  85%{opacity:.38}
+  100%{transform:translate3d(var(--dx,2vw),-112vh,0) rotate(var(--rot,180deg));opacity:0}
+}
+@keyframes mFlutter{
+  0%{transform:translate3d(0,0,0) rotate(-8deg) scale(1);opacity:0}
+  15%{opacity:.55}
+  45%{transform:translate3d(var(--dx,4vw),-7vh,0) rotate(9deg) scale(1.06)}
+  75%{transform:translate3d(calc(var(--dx,4vw) * -1),-13vh,0) rotate(-7deg) scale(.96);opacity:.4}
+  100%{transform:translate3d(0,-19vh,0) rotate(6deg);opacity:0}
+}
+@keyframes mTwinkle{
+  0%,100%{opacity:0;transform:scale(.7)}
+  50%{opacity:.75;transform:scale(1)}
+}
+@keyframes mBubble{
+  0%{transform:translate3d(0,10vh,0) scale(.75);opacity:0}
+  12%{opacity:.5}
+  100%{transform:translate3d(var(--dx,3vw),-108vh,0) scale(1.15);opacity:0}
+}
+.m-float{animation:mFloat linear infinite}
+.m-flutter{animation:mFlutter ease-in-out infinite}
+.m-twinkle{animation:mTwinkle ease-in-out infinite}
+.m-bubble{animation:mBubble linear infinite}
+html,body{height:100%;margin:0}
+body{
+  font-family:var(--serif);color:var(--ink);
+  background:radial-gradient(135% 95% at 50% -18%, var(--bg1,#1b2540) 0%, var(--bg2,#0b1220) 45%, var(--bg3,#05060d) 100%);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background-color .8s ease;
+}
+body::before{
+  content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(38% 26% at 24% 18%, rgba(var(--glow,207,141,141),.16), transparent 70%),
+    radial-gradient(42% 30% at 78% 30%, rgba(var(--glow2,217,180,143),.12), transparent 72%),
+    radial-gradient(60% 40% at 50% 96%, rgba(var(--glow3,90,130,180),.15), transparent 74%);
+  filter:blur(18px);
+  animation:drift 26s ease-in-out infinite alternate;
+  transition:background .8s ease;
+}
+@keyframes drift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  100%{transform:translate3d(-2%,2%,0) scale(1.08)}
+}
+#app{position:relative;z-index:1;max-width:520px;height:100%;margin:0 auto;overflow:hidden}
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  padding:max(22px,env(safe-area-inset-top)) 22px max(20px,env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;animation:fade .45s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- 通用 ---------- */
+.pill{
+  align-self:center;display:inline-block;padding:6px 16px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.035);
+  font-size:12px;letter-spacing:.22em;color:var(--ink-2);text-indent:.22em;
+}
+.h1{font-size:38px;line-height:1.2;letter-spacing:.14em;text-align:center;margin:0;font-weight:400;text-indent:.14em}
+.h2{font-size:26px;letter-spacing:.1em;text-align:center;margin:0;font-weight:400;text-indent:.1em}
+.sub{font-size:13px;color:var(--ink-3);letter-spacing:.16em;text-align:center;text-indent:.16em;line-height:2;word-break:keep-all}
+.goldline{
+  height:1px;width:120px;margin:18px auto;flex:0 0 auto;
+  background:linear-gradient(90deg,transparent,var(--line-2),transparent);
+}
+.btn{
+  -webkit-appearance:none;appearance:none;border:none;cursor:pointer;
+  width:100%;padding:16px;border-radius:16px;font-family:var(--serif);
+  font-size:16px;letter-spacing:.2em;text-indent:.2em;
+  background:linear-gradient(180deg,#f0dcc2,#d3ac86);color:#1a1207;
+  box-shadow:0 10px 30px -12px rgba(217,180,143,.65);
+  transition:transform .15s ease,opacity .2s ease,box-shadow .2s ease;
+}
+.btn:active{transform:scale(.975)}
+.btn.ghost{
+  background:transparent;color:var(--ink-2);border:1px solid var(--line);
+  box-shadow:none;font-size:14px;padding:14px;
+}
+.btn.ghost:active{background:var(--panel-2)}
+.btn:disabled{opacity:.32;box-shadow:none;cursor:not-allowed}
+.btn-row{display:flex;gap:10px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.spacer{flex:1 1 auto;min-height:10px}
+.tiny{font-size:11px;color:var(--ink-3);letter-spacing:.12em;text-align:center;line-height:1.9}
+
+/* ---------- 封面 ---------- */
+.cover-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 0}
+.cover-title{
+  font-size:58px;letter-spacing:.2em;text-indent:.2em;margin:16px 0 10px;font-weight:400;
+  background:linear-gradient(180deg,#fbf1e2,var(--accent,#d9b48f) 62%,#a87d5d);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(var(--glow,217,180,143),.35));
+}
+.cover-sub{font-size:13px;letter-spacing:.42em;text-indent:.42em;color:var(--ink-2);margin-bottom:6px}
+.cover-line{font-size:12px;letter-spacing:.26em;text-indent:.26em;color:var(--gold);opacity:.85;margin-top:14px}
+.tagrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:26px 0 4px}
+.tag{font-size:11px;letter-spacing:.1em;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:6px 13px;background:rgba(255,255,255,.028)}
+.consent{
+  display:flex;gap:11px;align-items:flex-start;margin:16px 0 14px;
+  padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+  font-family:var(--sans);font-size:12.5px;line-height:1.75;color:var(--ink-2);cursor:pointer;
+}
+.consent .box{
+  flex:0 0 auto;width:17px;height:17px;margin-top:2px;border-radius:5px;
+  border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#1a1207;transition:all .18s;
+}
+.consent.on .box{background:linear-gradient(180deg,#f0dcc2,#d3ac86);border-color:transparent}
+.consent.on{border-color:rgba(217,180,143,.5);background:rgba(217,180,143,.07)}
+.consent .tapme{
+  display:inline-block;margin-left:6px;font-style:normal;font-size:11px;
+  color:var(--gold);opacity:.85;letter-spacing:.1em;border-bottom:1px dashed rgba(217,180,143,.45);
+}
+.consent.on .tapme{display:none}
+.consent.needit{border-color:rgba(207,141,141,.75);box-shadow:0 0 0 3px rgba(207,141,141,.12)}
+.consent.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)}
+  20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-7px)}
+  40%,60%{transform:translateX(7px)}
+}
+
+/* ---------- 设置 ---------- */
+.field{margin-bottom:18px}
+.label{font-size:11px;letter-spacing:.24em;text-indent:.24em;color:var(--ink-3);margin-bottom:9px}
+.input{
+  width:100%;padding:15px 16px;border-radius:14px;font-family:var(--serif);font-size:16px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink);outline:none;
+  letter-spacing:.06em;
+}
+.input:focus{border-color:var(--line-2);background:rgba(255,255,255,.06)}
+.input::placeholder{color:#5d5650}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{
+  display:flex;align-items:center;gap:13px;padding:14px 15px;border-radius:14px;cursor:pointer;
+  border:1px solid var(--line);background:var(--panel);transition:all .2s;
+}
+.opt.on{border-color:var(--line-2);background:rgba(217,180,143,.10)}
+.opt .dot{
+  flex:0 0 auto;width:9px;height:9px;border-radius:50%;border:1px solid var(--line-2);transition:all .2s;
+}
+.opt.on .dot{background:var(--gold);box-shadow:0 0 12px rgba(217,180,143,.8);border-color:transparent}
+.opt .txt{flex:1}
+.opt .n{font-size:15px;letter-spacing:.1em;color:var(--ink)}
+.opt .d{font-size:11.5px;color:var(--ink-3);margin-top:4px;line-height:1.7;font-family:var(--sans)}
+.topicrow{display:flex;gap:8px;flex-wrap:wrap}
+.tchip{
+  padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--panel);
+  font-size:12.5px;letter-spacing:.08em;color:var(--ink-2);cursor:pointer;transition:all .18s;
+  font-family:var(--serif);
+}
+.tchip:active{transform:scale(.96)}
+.tchip.on{border-color:var(--line-2);background:rgba(217,180,143,.14);color:var(--gold-2)}
+.hist{
+  border:1px solid var(--line-2);border-radius:14px;padding:13px 15px;margin-bottom:16px;
+  background:rgba(217,180,143,.07);cursor:pointer;
+}
+.hist .t{font-size:12px;color:var(--gold);letter-spacing:.14em;margin-bottom:5px}
+.hist .d{font-size:11.5px;color:var(--ink-3);letter-spacing:.06em;font-family:var(--sans)}
+.cmp{border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;background:var(--panel)}
+.cmp .h{font-size:11px;color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:14px}
+.cmp .row{display:flex;justify-content:space-between;font-family:var(--sans);font-size:12px;color:var(--ink-3);padding:6px 0;border-bottom:1px dashed rgba(217,180,143,.13)}
+.cmp .row:last-child{border-bottom:none}
+.cmp .row b{color:var(--ink-2);font-weight:400}
+.cmp .row .up{color:var(--gold-2)}
+.cmp .last{margin-top:12px;font-size:13px;line-height:1.9;color:var(--ink-2)}
+.cmp .last i{color:var(--ink-3);font-style:normal;font-size:11px;letter-spacing:.12em;display:block;margin-bottom:4px}
+.scenebar{
+  margin:10px 0 2px;padding:9px 14px;border-radius:12px;flex:0 0 auto;
+  border:1px solid rgba(var(--glow2,207,141,141),.32);
+  background:rgba(var(--glow2,207,141,141),.08);
+  font-size:11.5px;color:rgba(var(--glow,220,190,180),.95);letter-spacing:.08em;text-align:center;
+  font-family:var(--sans);line-height:1.75;
+}
+.sceneopen{max-width:100%;text-align:center}
+.sceneopen .pl{font-size:11px;letter-spacing:.24em;color:var(--gold);margin-bottom:12px}
+.sceneopen .nm{font-size:34px;letter-spacing:.18em;text-indent:.18em;
+  background:linear-gradient(180deg,#fbf1e2,#d9b48f 70%,#a87d5d);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sceneopen .pl2{font-size:12.5px;color:var(--ink-2);line-height:2;margin-top:14px;letter-spacing:.08em}
+.sceneopen .cast{margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.sceneopen .cast span{font-size:12px;padding:8px 14px;border-radius:99px;
+  border:1px solid var(--line-2);color:var(--gold-2);background:rgba(217,180,143,.09)}
+.sceneopen .line{margin-top:24px;font-size:15px;color:#e8d6c2;line-height:2;letter-spacing:.06em}
+.genitem{
+  display:flex;gap:10px;padding:11px 0;border-bottom:1px dashed rgba(217,180,143,.12);
+  font-size:13.5px;line-height:1.85;color:var(--ink-2);
+}
+.genitem:last-child{border-bottom:none}
+.genitem .tl{flex:0 0 auto;width:40px;padding-top:3px;font-size:10px;letter-spacing:.08em;
+  color:var(--ink-3);font-family:var(--sans)}
+.genitem .tl b{color:var(--gold);font-weight:400;display:block}
+.genitem .via{display:block;margin-top:3px;font-size:9px;color:#6f6862;letter-spacing:0}
+.warn{
+  font-family:var(--sans);font-size:11.5px;line-height:1.8;color:#d8a5a5;
+  background:rgba(207,141,141,.08);border:1px solid rgba(207,141,141,.26);
+  border-radius:12px;padding:12px 14px;margin-top:10px;
+}
+
+/* ---------- 牌桌 ---------- */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex:0 0 auto}
+.icobtn{
+  width:34px;height:34px;flex:0 0 auto;border-radius:10px;border:1px solid var(--line);
+  background:transparent;color:var(--ink-3);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:var(--sans);
+}
+.icobtn:active{background:var(--panel-2)}
+.roundinfo{flex:1;text-align:center;font-size:11px;letter-spacing:.2em;color:var(--ink-3);font-family:var(--sans)}
+.pass{font-size:11px;color:var(--gold);letter-spacing:.06em;font-family:var(--sans);white-space:nowrap}
+
+.depthmap{display:flex;gap:7px;margin-bottom:6px;flex:0 0 auto}
+.dseg{
+  flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;position:relative;
+}
+.dseg i{position:absolute;inset:0;width:0;border-radius:99px;background:linear-gradient(90deg,#6f8fb5,#d9b48f);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.dseg.done i{width:100%}
+.layerline{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3);letter-spacing:.16em;margin-bottom:16px;font-family:var(--sans);flex:0 0 auto}
+.layerline b{color:var(--gold);font-weight:400}
+
+.stage{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:0;padding:4px 0}
+.turn-tip{text-align:center;font-size:12px;color:var(--ink-3);letter-spacing:.2em;margin-bottom:18px;font-family:var(--sans)}
+.turn-tip b{color:var(--ink);font-weight:400;font-family:var(--serif)}
+
+.chooser{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.backcard{
+  aspect-ratio:.72;border-radius:18px;border:1px solid var(--line);cursor:pointer;
+  background:
+    radial-gradient(80% 60% at 50% 18%,rgba(217,180,143,.14),transparent 70%),
+    linear-gradient(170deg,rgba(255,255,255,.055),rgba(255,255,255,.012));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+  position:relative;overflow:hidden;transition:transform .18s ease,border-color .2s;
+}
+.backcard:active{transform:scale(.97)}
+.backcard::after{
+  content:"";position:absolute;inset:9px;border:1px solid rgba(217,180,143,.16);border-radius:12px;pointer-events:none;
+}
+.backcard .mark{font-size:26px;color:var(--gold);opacity:.85}
+.backcard .nm{font-size:17px;letter-spacing:.24em;text-indent:.24em}
+.backcard .lvl{font-size:10.5px;color:var(--ink-3);letter-spacing:.2em}
+.backcard.blind{grid-column:1/-1;aspect-ratio:1.5}
+.backcard.blind .mark{font-size:38px}
+
+.bigcard{
+  border-radius:20px;padding:26px 22px 22px;min-height:270px;position:relative;
+  border:1px solid var(--line-2);
+  background:
+    radial-gradient(90% 70% at 50% 0%,rgba(217,180,143,.13),transparent 72%),
+    linear-gradient(170deg,rgba(255,255,255,.075),rgba(255,255,255,.015));
+  display:flex;flex-direction:column;
+  box-shadow:0 30px 70px -40px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06);
+  animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(14px) rotateX(-8deg) scale(.97)}
+  to{opacity:1;transform:none}
+}
+.bigcard .ctop{display:flex;gap:8px;align-items:center;margin-bottom:20px}
+.chip{font-size:10.5px;letter-spacing:.2em;padding:5px 11px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2);background:rgba(255,255,255,.03)}
+.chip.rose{color:#e6b0b0;border-color:rgba(207,141,141,.36);background:rgba(207,141,141,.09)}
+.chip.gold{color:var(--gold);border-color:var(--line-2);background:rgba(217,180,143,.09)}
+.ctext{font-size:22px;line-height:1.82;letter-spacing:.05em;flex:1;text-align:center;padding:12px 4px;display:flex;align-items:center;justify-content:center}
+.ctext.long{font-size:19px}
+
+.kbstat{display:flex;gap:10px;margin:16px 0}
+.kbrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(217,180,143,.12)}
+.kbrow:last-child{border-bottom:none}
+.kbrow .nm{flex:0 0 78px;font-size:13px;letter-spacing:.06em}
+.kbrow .bar{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.kbrow .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7f9dc4,var(--gold))}
+.kbrow .num{flex:0 0 46px;text-align:right;font-size:11px;color:var(--ink-3);font-family:var(--sans)}
+.kbrow.never .nm{color:var(--ink-3)}
+.kbrow.dodge .bar i{background:linear-gradient(90deg,#b06a7a,#d98a9a)}
+.kbsec{margin-top:24px}
+.kbsec .h{font-size:11px;letter-spacing:.22em;color:var(--gold);margin-bottom:12px}
+.quote{border-left:2px solid rgba(217,180,143,.35);padding:2px 0 2px 12px;margin-bottom:16px}
+.quote .q{font-size:12px;color:var(--ink-3);line-height:1.8;margin-bottom:6px;font-family:var(--sans)}
+.quote .a{font-size:14px;color:var(--ink);line-height:1.9;letter-spacing:.02em}
+.quote .t{font-size:10px;color:#5d5650;margin-top:5px;letter-spacing:.1em}
+.kbtip{font-size:12.5px;line-height:2;color:var(--ink-2);font-family:var(--sans);
+  border-left:2px solid rgba(217,180,143,.35);padding-left:12px;margin:14px 0}
+.why{
+  margin-top:14px;padding:12px 14px;border-radius:12px;
+  border:1px solid rgba(var(--glow,217,180,143),.28);
+  background:rgba(var(--glow,217,180,143),.07);
+  font-size:12px;line-height:1.9;color:rgba(var(--glow,220,205,190),.95);
+  font-family:var(--sans);letter-spacing:.02em;text-align:center;
+  animation:fade .3s ease both;
+}
+.cfoot{font-size:11px;color:var(--ink-3);text-align:center;letter-spacing:.14em;margin-top:18px;font-family:var(--sans)}
+
+.judge{text-align:center;margin-bottom:16px}
+.judge .who{font-size:13px;color:var(--gold);letter-spacing:.2em;margin-bottom:6px}
+.judge .ask{font-size:11.5px;color:var(--ink-3);letter-spacing:.12em;font-family:var(--sans)}
+.flash{
+  position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:60;
+  padding:10px 20px;border-radius:99px;font-size:13px;letter-spacing:.14em;
+  background:rgba(20,26,40,.92);border:1px solid var(--line-2);color:var(--gold-2);
+  animation:flashIn .5s ease both;pointer-events:none;white-space:nowrap;
+  box-shadow:0 10px 30px -14px #000;
+}
+@keyframes flashIn{
+  0%{opacity:0;transform:translateX(-50%) translateY(-10px)}
+  16%{opacity:1;transform:translateX(-50%) translateY(0)}
+  80%{opacity:1}
+  100%{opacity:0;transform:translateX(-50%) translateY(-8px)}
+}
+.overlay{
+  position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(4,6,11,.93);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  padding:30px;text-align:center;cursor:pointer;animation:fade .5s ease both;
+}
+.overlay .big{font-size:40px;letter-spacing:.2em;text-indent:.2em;font-weight:400;
+  background:linear-gradient(180deg,#fbf1e2,#d9b48f 70%,#a87d5d);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:rise .8s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+.overlay .sm{margin-top:16px;font-size:13px;color:var(--ink-2);letter-spacing:.2em;line-height:2}
+
+/* ---------- 结算 ---------- */
+.statrow{display:flex;gap:10px;margin:20px 0}
+.stat{flex:1;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center;background:var(--panel)}
+.stat .v{font-size:23px;color:var(--gold-2);letter-spacing:.04em}
+.stat .k{font-size:10.5px;color:var(--ink-3);letter-spacing:.16em;margin-top:7px;font-family:var(--sans)}
+.letter{
+  border:1px solid var(--line-2);border-radius:18px;padding:22px 20px;margin:16px 0;
+  background:radial-gradient(80% 60% at 50% 0%,rgba(217,180,143,.10),transparent 72%),rgba(255,255,255,.03);
+}
+.letter .to{font-size:11px;color:var(--ink-3);letter-spacing:.22em;margin-bottom:14px;text-align:center}
+.letter .body{font-size:17px;line-height:2.1;letter-spacing:.05em;text-align:center;white-space:pre-wrap;word-break:break-word}
+.letter .from{font-size:11.5px;color:var(--gold);letter-spacing:.16em;text-align:right;margin-top:16px}
+textarea.input{min-height:96px;resize:none;line-height:1.9;font-size:15px}
+</style>
+</head>
+<body>
+<div id="motifs" aria-hidden="true"></div>
+<div id="app">
+
+  <!-- ============ 封面 ============ -->
+  <section class="screen active" id="s-cover">
+    <div class="cover-wrap">
+      <div class="pill">双人 · 深度对话 · 关系档案</div>
+      <h1 class="cover-title">同频</h1>
+      <div class="cover-sub">越说，越近</div>
+      <div class="goldline"></div>
+      <p class="sub" style="max-width:330px;word-break:keep-all">
+        <span style="white-space:nowrap">458 张牌 · 五层深度 · 16 个场景</span><br>
+        <span style="white-space:nowrap">从一句玩笑，聊到你们自己都没说过的话</span>
+      </p>
+      <div class="tagrow">
+        <span class="tag">458 张 + 320 张情景</span>
+        <span class="tag">会记住你们</span>
+        <span class="tag">三档尺度 · 可定制</span>
+      </div>
+      <div class="cover-line">越聊越懂 · 每一局都接着上一局</div>
+    </div>
+
+    <div class="consent" id="consent">
+      <span class="box"></span>
+      <span>我们两个人都已成年，也都愿意玩这一局。任何时候都可以停下，停下不算输。
+        <i class="tapme">点这一行确认</i>
+      </span>
+    </div>
+    <button class="btn" id="btn-enter">开始</button>
+    <p class="tiny" style="margin-top:14px">资料仅保存在当前浏览器，不上传到服务器；共享设备使用后请清除浏览数据。</p>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="screen" id="s-setup">
+    <div class="topbar">
+      <button class="icobtn" data-back="s-cover">←</button>
+      <div class="roundinfo">开局设置</div>
+      <div style="width:34px"></div>
+    </div>
+
+    <div id="hist-slot"></div>
+
+    <div class="field">
+      <div class="label">你们的名字</div>
+      <div class="btn-row">
+        <input class="input" id="name-a" placeholder="你" maxlength="8" autocomplete="off" />
+        <input class="input" id="name-b" placeholder="TA" maxlength="8" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">只属于你们的牌 · 选配</div>
+      <button class="btn ghost" id="btn-custom">用你们的暗号出题</button>
+      <div class="tiny" id="custom-status" style="margin-top:8px;text-align:left"></div>
+    </div>
+
+    <div class="field">
+      <div class="label">关系档案</div>
+      <button class="btn ghost" id="btn-kb">看看你们聊到哪了</button>
+      <div class="tiny" id="kb-status" style="margin-top:8px;text-align:left"></div>
+    </div>
+
+    <div class="field">
+      <div class="label">今晚的玩法</div>
+      <div class="opts" id="mode-opts">
+        <div class="opt on" data-mode="night">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">深夜独处</span><span class="d">30–60 分钟 · 两个人窝在一起，五层水位全开</span></span>
+        </div>
+        <div class="opt" data-mode="long">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">异地恋</span><span class="d">视频通话就能玩 · 隔着一千公里，也能一起往下沉</span></span>
+        </div>
+        <div class="opt" data-mode="quick">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">十分钟快热</span><span class="d">睡前 / 等车 / 排队 · 只走到第二层，轻松收场</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">今晚专题 · 可选</div>
+      <div class="topicrow" id="topic-opts">
+        <div class="tchip on" data-topic="none">通用</div>
+        <div class="tchip" data-topic="ice">破冰</div>
+        <div class="tchip" data-topic="crush">暧昧期</div>
+        <div class="tchip" data-topic="honeymoon">热恋期</div>
+        <div class="tchip" data-topic="open">无话不说</div>
+        <div class="tchip" data-topic="silence">无话可说</div>
+        <div class="tchip" data-topic="fight">吵架后</div>
+        <div class="tchip" data-topic="far">异地</div>
+        <div class="tchip" data-topic="cold">冷淡期</div>
+      </div>
+      <div class="tiny" style="text-align:left;margin-top:8px;color:var(--ink-3)">
+        选一个，牌库会多出 10 张只写这件事的牌。破冰 / 暧昧期从第一层就开始出现。
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">情景演绎 · 可选</div>
+      <div class="topicrow" id="scene-opts"></div>
+      <div class="tiny" style="text-align:left;margin-top:8px;color:var(--ink-3)">
+        一个场景就是一出五幕的戏：进 → 近 → 停 → 越界 → 之后。进场先分角色。
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">尺度档位</div>
+      <div class="opts" id="deck-opts">
+        <div class="opt on" data-deck="heart">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">心动档 · 安全</span><span class="d">浅滩 / 浅水 / 深处 三层，全程不越界，适合刚开始的你们</span></span>
+        </div>
+        <div class="opt" data-deck="deep">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">深水档 · 更近</span><span class="d">加开第四层「交心」——心里那些不常打开的地方</span></span>
+        </div>
+        <div class="opt" data-deck="adult">
+          <span class="dot"></span>
+          <span class="txt"><span class="n">成人档 · 无光区</span><span class="d">加开第五层「无光区」——身体的、私生活的、关了灯才说的</span></span>
+        </div>
+      </div>
+      <div class="warn" id="deep-warn" style="display:none">
+        深水档的牌更靠近心里那些不常打开的地方。建议两个人一起按下开始，谁想停就停——这也是这局的规则之一。
+      </div>
+      <div class="consent" id="adult-consent" style="display:none;margin-top:10px">
+        <span class="box"></span>
+        <span>我们会开到第五层「无光区」，里面是成年人之间关于身体和私生活的问题。我们两个人都愿意，也知道随时可以跳牌或停下。</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn" id="btn-start">摊牌</button>
+    <button class="btn ghost" id="btn-clear" style="margin-top:10px;font-size:12px;letter-spacing:.1em">清掉这台手机上存的记录</button>
+  </section>
+
+  <!-- ============ 牌桌 ============ -->
+  <section class="screen" id="s-table">
+    <div class="topbar">
+      <button class="icobtn" id="btn-sound" title="声音">♪</button>
+      <div class="roundinfo" id="round-info">第 1 / 24 轮</div>
+      <button class="icobtn" id="btn-finish" title="收尾">收尾</button>
+    </div>
+
+    <div class="depthmap" id="depthmap">
+      <div class="dseg" data-l="1"><i></i></div>
+      <div class="dseg" data-l="2"><i></i></div>
+      <div class="dseg" data-l="3"><i></i></div>
+      <div class="dseg" data-l="4"><i></i></div>
+      <div class="dseg" data-l="5"><i></i></div>
+    </div>
+    <div class="layerline">
+      <span>水位 · <b id="layer-name">浅滩</b></span>
+      <span class="pass" id="pass-info">护身符 2 : 2</span>
+    </div>
+    <div class="scenebar" id="scene-bar" style="display:none"></div>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="stack" id="actions" style="margin-top:16px;flex:0 0 auto"></div>
+  </section>
+
+
+  <!-- ============ 定制牌 ============ -->
+  <section class="screen" id="s-custom">
+    <div class="topbar">
+      <button class="icobtn" data-back="s-setup">←</button>
+      <div class="roundinfo">只属于你们的牌</div>
+      <div style="width:34px"></div>
+    </div>
+
+    <p class="tiny" style="text-align:left;margin-bottom:16px;line-height:1.9">
+      填得越多，题越准。空着的项会自动跳过。<br>
+      这些字只存在这台手机上，不会发出去。
+    </p>
+
+    <div class="field">
+      <div class="label">怎么叫对方</div>
+      <div class="btn-row">
+        <input class="input" id="c-a" placeholder="我的称呼" maxlength="8" autocomplete="off" />
+        <input class="input" id="c-b" placeholder="TA 的称呼" maxlength="8" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">常去的地方</div>
+      <input class="input" id="c-place" placeholder="比如：江边那家便利店（多个用、隔开）" maxlength="40" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <div class="label">上次好好说话是哪天</div>
+      <input class="input" id="c-date" type="date" />
+    </div>
+
+    <div class="field">
+      <div class="label">谁更常先低头</div>
+      <div class="topicrow" id="c-low">
+        <div class="tchip" data-v="me">我更常</div>
+        <div class="tchip" data-v="ta">TA 更常</div>
+        <div class="tchip" data-v="eq">差不多</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">谁更黏人</div>
+      <div class="topicrow" id="c-cling">
+        <div class="tchip" data-v="me">我更黏</div>
+        <div class="tchip" data-v="ta">TA 更黏</div>
+        <div class="tchip" data-v="eq">差不多</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">你们现在</div>
+      <div class="topicrow" id="c-dist">
+        <div class="tchip" data-v="same">同城</div>
+        <div class="tchip" data-v="far">异地</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">在一起多久</div>
+      <input class="input" id="c-since" placeholder="比如：三年 / 八个月" maxlength="12" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <div class="label">只有你们知道的一件事 <span style="color:var(--ink-3)">· 选填</span></div>
+      <input class="input" id="c-secret" placeholder="比如：那次差点分开" maxlength="20" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <div class="label">还没说开的一件事 <span style="color:var(--ink-3)">· 选填</span></div>
+      <input class="input" id="c-unsaid" placeholder="比如：彩礼的事" maxlength="20" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <div class="label">私房台词 <span style="color:var(--ink-3)">· 选填 · 只有这台手机看得到</span></div>
+      <div class="stack">
+        <input class="input" id="c-call" placeholder="你叫 TA 的那个称呼" maxlength="12" autocomplete="off" />
+        <textarea class="input" id="c-start" placeholder="开始时，你最想听的一句话" maxlength="60"></textarea>
+        <textarea class="input" id="c-mid" placeholder="中途，你最想听的一句话" maxlength="60"></textarea>
+        <textarea class="input" id="c-end" placeholder="结束后，你最想听的一句话" maxlength="60"></textarea>
+      </div>
+      <div class="tiny" style="text-align:left;margin-top:8px;line-height:1.9">
+        不填也行。填了，这几句会变成牌，开局时混进牌堆。
+      </div>
+    </div>
+
+    <div id="custom-preview"></div>
+
+    <div class="spacer" style="min-height:10px"></div>
+    <div class="stack">
+      <button class="btn" id="btn-gen">生成我的牌</button>
+      <button class="btn ghost" id="btn-gen-more" style="display:none">换一批</button>
+    </div>
+    <p class="tiny" style="margin-top:14px">本地生成 · 不需要联网 · 谁也不知道你填了什么</p>
+  </section>
+
+
+  <!-- ============ 关系档案 ============ -->
+  <section class="screen" id="s-kb">
+    <div class="topbar">
+      <button class="icobtn" data-back="s-setup">←</button>
+      <div class="roundinfo">关系档案</div>
+      <div style="width:34px"></div>
+    </div>
+    <div id="kb-body"></div>
+  </section>
+
+  <!-- ============ 结算 ============ -->
+  <section class="screen" id="s-end">
+    <div class="topbar">
+      <button class="icobtn" data-back="s-cover" title="回到封面">×</button>
+      <div class="roundinfo">这一夜</div>
+      <div style="width:34px"></div>
+    </div>
+    <div class="stage" id="end-stage"></div>
+  </section>
+
+</div>
+
+<script src="./cards.js"></script>
+<script src="./custom-templates.js"></script>
+<script>
+"use strict";
+
+/* 牌库：cards.js（常规 + 深聊 + 共鸣） */
+
+/* =========================================================
+   状态
+   ========================================================= */
+const MODES = {
+  night: { name:"深夜独处", rounds:30, maxLayer:5 },
+  long:  { name:"异地恋",   rounds:24, maxLayer:5 },
+  quick: { name:"十分钟快热", rounds:10, maxLayer:2 }
+};
+const DECKS = {
+  heart: { name:"心动档", maxLayer:3 },
+  deep:  { name:"深水档", maxLayer:4 },
+  adult: { name:"成人档", maxLayer:5 }
+};
+const TOPIC_NAMES = { none:"通用", ice:"破冰", crush:"暧昧期", honeymoon:"热恋期",
+  open:"无话不说", silence:"无话可说", fight:"吵架后", far:"异地", cold:"冷淡期" };
+const PER_LAYER = 3; // 每层需要几次「够诚」才能上浮
+
+const S = {
+  names:["你","TA"],
+  mode:"night",
+  deck:"heart",
+  topic:"none",
+  scene:"none",
+  sceneCast:0,
+  sceneQ:[],
+  adultOK:false,
+  maxLayer:3,
+  maxRounds:30,
+  round:0,
+  turn:0,
+  layer:1,
+  gauge:0,
+  passes:[2,2],
+  used:new Set(),
+  current:null,
+  revealed:true,
+  phase:"choose",   // choose | card | judge
+  answered:0,
+  skipped:0,
+  reached:1,
+  muted:false,
+  log:[]
+};
+
+const $  = (s)=>document.querySelector(s);
+const esc = (s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const layerOf = (l)=>LAYERS[l-1];
+
+// 给每张牌一个稳定 id
+CARDS.forEach((c,i)=>{ c.id = i; });
+SCENES.forEach(s => {
+  let k = 0;
+  s.acts.forEach((a, ai) => a.cards.forEach(c => {
+    c.id = "sc:" + s.id + ":" + (k++);
+    c.act = ai;
+    c.actName = a.name;
+  }));
+});
+
+function sceneById(id){ return SCENES.find(s => s.id === id) || null; }
+function layerLabel(c){
+  if(c && c.sceneCard){
+    const sc = sceneById(c.sc);
+    return sc ? ("场景 · " + sc.name) : "场景";
+  }
+  return layerOf(c.l).name;
+}
+
+/* ---------- 声音（极轻的水滴） ---------- */
+let AC = null;
+function ping(freq, dur, gain){
+  if(S.muted) return;
+  try{
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if(AC.state === "suspended") AC.resume();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = "sine"; o.frequency.value = freq || 720;
+    g.gain.setValueAtTime(0, AC.currentTime);
+    g.gain.linearRampToValueAtTime(gain || .05, AC.currentTime + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + (dur||.3));
+    o.connect(g).connect(AC.destination);
+    o.start(); o.stop(AC.currentTime + (dur||.3) + .03);
+  }catch(e){ /* 静默失败 */ }
+}
+
+/* ---------- 屏幕切换 ---------- */
+function show(id){
+  document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
+  const el = document.getElementById(id);
+  if(el) el.classList.add("active");
+  if(el) el.scrollTop = 0;
+  if(id === "s-setup"){ renderHistSlot(); updateCustomStatus(); renderKbStatus(); }
+  if(id === "s-cover" || id === "s-setup" || id === "s-custom" || id === "s-kb") applyTheme("cover");
+}
+
+function flash(text){
+  const d = document.createElement("div");
+  d.className = "flash"; d.textContent = text;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 1600);
+}
+
+
+/* =========================================================
+   关系档案 · 跨局累积的「懂你」模型
+   —— 不是记流水账，是记录三个真正会变的东西：
+      1) 主题覆盖：哪些话题你们从没碰过
+      2) 躲闪热区：哪一类题反复躲，那才是真问题
+      3) 时间线：同一句话隔了多久再说，味道不一样
+   ========================================================= */
+const KB_KEY = "tongpin_kb_v1";
+
+const THEME_META = {
+  "认识":     { desc:"你们怎么认识彼此", icon:"认" },
+  "心动":     { desc:"喜欢是怎么长出来的", icon:"动" },
+  "日常":     { desc:"日复一日的相处", icon:"常" },
+  "被看见":   { desc:"有没有被真正理解", icon:"见" },
+  "安全感":   { desc:"怕不怕失去", icon:"安" },
+  "界限":     { desc:"哪里不能碰", icon:"界" },
+  "坦诚":     { desc:"有没有藏着的话", icon:"诚" },
+  "表达":     { desc:"怎么把爱说出口", icon:"说" },
+  "冲突":     { desc:"吵完之后怎么办", icon:"吵" },
+  "沉默":     { desc:"没话说的时候", icon:"默" },
+  "疏离":     { desc:"从什么时候开始远", icon:"远" },
+  "距离":     { desc:"隔着距离怎么过", icon:"隔" },
+  "原生家庭": { desc:"你从哪个家来的", icon:"源" },
+  "自我认知": { desc:"你是谁，你想成为谁", icon:"我" },
+  "意义":     { desc:"我们在一起为了什么", icon:"意" },
+  "孤独":     { desc:"两个人的孤独", icon:"孤" },
+  "观念":     { desc:"看不见的分歧", icon:"念" },
+  "亲密":     { desc:"身体与靠近", icon:"近" },
+  "照顾":     { desc:"被好好对待", icon:"护" }
+};
+
+function kbAll(){
+  try{ return JSON.parse(localStorage.getItem(KB_KEY) || "{}"); }catch(e){ return {}; }
+}
+function kbSave(o){
+  try{ localStorage.setItem(KB_KEY, JSON.stringify(o)); }catch(e){}
+}
+const PLACEHOLDER_NAMES = ["你","TA"];
+function isPlaceholder(names){
+  return !names || PLACEHOLDER_NAMES.includes(names[0]) || PLACEHOLDER_NAMES.includes(names[1]);
+}
+function kbOf(names, create){
+  const all = kbAll();
+  const k = [names[0], names[1]].sort().join(" × ");
+  if(!all[k]){
+    if(create === false) return { created:null, themes:{}, cards:{}, sessions:0, deepest:0 };
+    all[k] = { created: new Date().toISOString(), themes:{}, cards:{}, sessions:0, deepest:0 };
+    kbSave(all);
+  }
+  return all[k];
+}
+/* 把占位名时代的档案挪到真名下，避免记录分裂 */
+function kbMigrate(from, to){
+  const all = kbAll();
+  const kf = [from[0], from[1]].sort().join(" × ");
+  const kt = [to[0], to[1]].sort().join(" × ");
+  if(!all[kf] || kf === kt) return;
+  const src = all[kf], dst = all[kt] || (all[kt] = { created: src.created, themes:{}, cards:{}, sessions:0, deepest:0 });
+  Object.keys(src.themes||{}).forEach(t=>{
+    const a = src.themes[t], b = dst.themes[t] || (dst.themes[t] = { seen:0, honest:0, dodge:0 });
+    b.seen += a.seen; b.honest += a.honest; b.dodge += a.dodge;
+  });
+  Object.assign(dst.cards, src.cards || {});
+  dst.sessions = Math.max(dst.sessions||0, src.sessions||0);
+  dst.deepest  = Math.max(dst.deepest||1, src.deepest||1);
+  delete all[kf];
+  kbSave(all);
+}
+function kbWrite(names, kb){
+  const all = kbAll();
+  all[[names[0], names[1]].sort().join(" × ")] = kb;
+  kbSave(all);
+}
+
+/* 记录一张牌的作答结果 */
+function kbRecord(cardTheme, cardText, honest, note){
+  if(!cardTheme) return;
+  if(isPlaceholder(S.names)) return;      // 名字还是「你 / TA」时不建档
+  const kb = kbOf(S.names);
+  const t = kb.themes[cardTheme] || (kb.themes[cardTheme] = { seen:0, honest:0, dodge:0 });
+  t.seen++;
+  if(honest) t.honest++; else t.dodge++;
+  kb.cards[cardText] = { at: Date.now(), honest: !!honest, who: S.turn, layer: S.layer };
+  if(note){
+    kb.notes = kb.notes || [];
+    kb.notes.push({ at: Date.now(), q: cardText, a: note, who: S.turn, theme: cardTheme });
+    if(kb.notes.length > 60) kb.notes = kb.notes.slice(-60);
+  }
+  kbWrite(S.names, kb);
+}
+
+/* 生成一份「阅读报告」：哪里浅了、哪里一直在躲、哪里长出来了 */
+function kbReport(){
+  const kb = kbOf(S.names, isPlaceholder(S.names) ? false : true);
+  const rows = Object.keys(THEME_META).map(k=>{
+    const t = kb.themes[k] || { seen:0, honest:0, dodge:0 };
+    const rate = t.seen ? Math.round(t.honest / t.seen * 100) : null;
+    return { k, seen:t.seen, honest:t.honest, dodge:t.dodge, rate };
+  });
+  const touched   = rows.filter(r=>r.seen > 0);
+  const untouched = rows.filter(r=>r.seen === 0);
+  const dodgy     = rows.filter(r=>r.seen >= 2 && r.rate !== null && r.rate <= 50)
+                        .sort((a,b)=> (a.rate - b.rate) || (b.dodge - a.dodge));
+  const strong    = rows.filter(r=>r.seen >= 2 && r.rate !== null && r.rate >= 80)
+                        .sort((a,b)=> b.seen - a.seen);
+
+  // 依恋倾向的粗判（不贴标签，只给一句观察）
+  const totalSeen = rows.reduce((s,r)=>s+r.seen,0);
+  const totalDodge = rows.reduce((s,r)=>s+r.dodge,0);
+  const dodgeRate = totalSeen ? totalDodge/totalSeen : 0;
+  let hint = "";
+  if(totalSeen >= 8){
+    if(dodgeRate < 0.15) hint = "你们答得很实。这个分数在情侣里不多见——大多数人会先躲两三轮。";
+    else if(dodgeRate < 0.35) hint = "大多数题你们都能接住，少数几处会绕开。那几处通常不是不能说，是没找到时机。";
+    else hint = "躲的比例偏高。不一定是关系有问题，更可能是还没建立「说了不会出事」的确定感。";
+  }
+  return { rows, touched, untouched, dodgy, strong, totalSeen, dodgeRate, hint,
+           sessions: kb.sessions || 0, deepest: kb.deepest || 1, created: kb.created,
+           notes: kb.notes || [], cards: kb.cards || {} };
+}
+
+/* 下次开局时，优先补哪些主题 */
+function kbPriority(){
+  const rep = kbReport();
+  const out = [];
+  // 1) 从没碰过的主题（按重要性排序）
+  const order = ["原生家庭","界限","意义","孤独","观念","自我认知","坦诚","安全感"];
+  order.forEach(k=>{ if(rep.untouched.find(r=>r.k===k) && out.length < 2) out.push(k); });
+  // 2) 反复躲的
+  rep.dodgy.slice(0,2).forEach(r=>{ if(!out.includes(r.k)) out.push(r.k); });
+  return out;
+}
+
+/* =========================================================
+   本机记忆 · 月度回访（只存这台手机，不上传）
+   ========================================================= */
+const LS_KEY = "deepwater_sessions_v1";
+
+function coupleKeyOf(names){
+  return [names[0], names[1]].sort().join(" × ");
+}
+function loadStore(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }catch(e){ return {}; }
+}
+function saveStore(o){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(o)); }catch(e){}
+}
+function historyOf(names){
+  const all = loadStore();
+  const arr = all[coupleKeyOf(names)];
+  return Array.isArray(arr) ? arr : [];
+}
+function lastSession(){ return historyOf(S.names).slice(-1)[0] || null; }
+
+function recordSession(noteA, noteB){
+  const rec = {
+    date: new Date().toISOString(),
+    mode: S.mode, deck: S.deck, topic: S.topic, scene: S.scene,
+    layer: S.reached, answered: S.answered, skipped: S.skipped,
+    cards: S.log
+      .filter(e => e.text && e.text.charAt(0) !== "（")
+      .map(e => ({ l: e.layer, x: e.text, honest: !!e.honest })),
+    noteA: noteA || "", noteB: noteB || ""
+  };
+  const k = coupleKeyOf(S.names);
+  const all = loadStore();
+  const arr = Array.isArray(all[k]) ? all[k] : [];
+  const today = new Date().toDateString();
+  const idx = arr.findIndex(r => new Date(r.date).toDateString() === today);
+  if(idx >= 0) arr[idx] = rec; else arr.push(rec);
+  all[k] = arr.slice(-12);          // 只留最近 12 次
+  saveStore(all);
+  S.record = rec;
+  return rec;
+}
+
+function renderHistSlot(){
+  const slot = $("#hist-slot");
+  if(!slot) return;
+  const a = ($("#name-a").value || "").trim();
+  const b = ($("#name-b").value || "").trim();
+  if(!a || !b){ slot.innerHTML = ""; return; }
+  const h = historyOf([a.slice(0,8), b.slice(0,8)]);
+  if(!h.length){ slot.innerHTML = ""; return; }
+  const last = h[h.length - 1];
+  const d = new Date(last.date);
+  const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  const L = LAYERS[last.layer - 1];
+  slot.innerHTML =
+    '<div class="hist" id="hist-card">' +
+      '<div class="t">上一次 · ' + (d.getMonth()+1) + '月' + d.getDate() + '日' +
+        (days === 0 ? " · 今天" : " · " + days + " 天前") + '</div>' +
+      '<div class="d">到了「' + L.name + '」· 答了 ' + last.answered + ' 张牌 · 点这里回看那次说的话</div>' +
+    '</div>';
+  const card = $("#hist-card");
+  if(card) card.addEventListener("click", ()=>showHistory(last));
+}
+
+function showHistory(rec){
+  const d = new Date(rec.date);
+  const L = LAYERS[rec.layer - 1];
+  const deep = (rec.cards || []).slice().sort((a,b)=>b.l - a.l).slice(0,5);
+  const ov = document.createElement("div");
+  ov.className = "overlay";
+  ov.style.cssText = "justify-content:flex-start;padding-top:74px;overflow-y:auto;cursor:auto";
+  ov.innerHTML =
+    '<div class="pill">上一次 · ' + (d.getMonth()+1) + '月' + d.getDate() + '日</div>' +
+    '<div style="margin-top:16px;font-size:24px;letter-spacing:.12em">' +
+      esc(MODES[rec.mode].name) + ' · 到了「' + esc(L.name) + '」</div>' +
+    '<div class="tiny" style="margin-top:8px">答了 ' + rec.answered + ' 张 · 跳过 ' + (rec.skipped||0) + ' 张' +
+      (rec.topic && rec.topic !== "none" ? " · 专题：" + TOPIC_NAMES[rec.topic] : "") +
+      (rec.scene && rec.scene !== "none" && sceneById(rec.scene) ? " · 场景：" + sceneById(rec.scene).name : "") + '</div>' +
+    '<div class="goldline"></div>' +
+    (deep.length
+      ? '<div class="cmp" style="width:100%;text-align:left"><div class="h">那天问到最深的几张</div>' +
+        deep.map(c =>
+          '<div class="last"><i>' + esc(LAYERS[c.l-1].name) + (c.honest ? ' · 答得够诚' : ' · 当时有点躲') + '</i>' +
+          esc(c.x) + '</div>').join("") + '</div>'
+      : '') +
+    (rec.noteA ? '<div class="cmp" style="width:100%;text-align:left"><div class="h">' + esc(S.names[0]) + ' 那晚写下的</div><div class="last">' + esc(rec.noteA) + '</div></div>' : '') +
+    (rec.noteB ? '<div class="cmp" style="width:100%;text-align:left"><div class="h">' + esc(S.names[1]) + ' 那晚写下的</div><div class="last">' + esc(rec.noteB) + '</div></div>' : '') +
+    '<div class="tiny" style="margin-top:22px">轻触关闭 · 会不会和今晚的答案不一样</div>';
+  ov.addEventListener("click", ()=>ov.remove());
+  document.body.appendChild(ov);
+}
+
+/* =========================================================
+   只属于你们的牌 · 定制生成引擎
+   本地组合，不上传、不需要联网
+   ========================================================= */
+const CUSTOM_KEY = "deepwater_custom_v1";
+
+const CT = window.CT;   /* 模板库在 custom-templates.js */
+
+function cdays(dateStr){
+  if(!dateStr) return 0;
+  const t = new Date(dateStr + "T00:00:00").getTime();
+  if(isNaN(t)) return 0;
+  return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+}
+
+function splitPlaces(v){
+  return String(v || "").split(/[、,，\/|；;]/).map(s => s.trim()).filter(Boolean).slice(0, 3);
+}
+
+/* 把用户填的信息「填」进通用模板 */
+function buildCustomPack(p){
+  const days   = cdays(p.date);
+  const places = splitPlaces(p.place);
+  let pi = 0;
+
+  const fill = (tpl)=>{
+    let s = String(tpl);
+    if(s.indexOf("{PLACE}") >= 0){
+      const pl = places.length ? places[pi++ % places.length] : "";
+      s = s.split("{PLACE}").join(pl);
+    }
+    return s
+      .split("{A}").join(p.a || "我")
+      .split("{B}").join(p.b || "你")
+      .split("{DAYS}").join(days)
+      .split("{LOW}").join(p.lowName || "TA")
+      .split("{CLING}").join(p.clingName || "TA")
+      .split("{SECRET}").join(p.secret || "")
+      .split("{UNSAID}").join(p.unsaid || "")
+      .split("{SINCE}").join(p.since || "这么久");
+  };
+
+  const can = (need)=> String(need).split("+").every(k=>{
+    if(k === "names")  return true;
+    if(k === "place")  return places.length > 0;
+    if(k === "date")   return !!p.date;
+    if(k === "low")    return !!p.lowName;
+    if(k === "cling")  return !!p.clingName;
+    if(k === "secret") return !!p.secret;
+    if(k === "unsaid") return !!p.unsaid;
+    if(k === "since")  return !!p.since;
+    if(k === "far")    return p.distance === "far";
+    if(k === "same")   return p.distance === "same";
+    return false;
+  });
+
+  const shuffle = (arr)=>{
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  };
+  const primaryOf = need => String(need).split("+")[0];
+
+  const pool = CT.filter(t => can(t.need));
+  const out  = [];
+  const seen = new Set();
+  const cap  = {1:6, 2:8, 3:12, 4:14, 5:12};
+
+  for(let l = 1; l <= 5; l++){
+    // 按「用了哪条信息」分组，轮流取 —— 保证地点题、时间题、那件事的题都轮到
+    const groups = {};
+    pool.filter(t => t.l === l).forEach(t=>{
+      const k = primaryOf(t.need);
+      (groups[k] = groups[k] || []).push(t);
+    });
+    const keys = shuffle(Object.keys(groups));
+    const queues = {};
+    keys.forEach(k => { queues[k] = shuffle(groups[k]); });
+
+    let n = 0, guard = 0;
+    while(n < cap[l] && guard++ < 60){
+      let moved = false;
+      for(const k of keys){
+        if(n >= cap[l]) break;
+        const q = queues[k];
+        if(!q.length) continue;
+        const t = q.shift();
+        const x = fill(t.x);
+        if(!x || seen.has(x)) continue;
+        seen.add(x);
+        out.push({ l:t.l, t:t.t, x, via: primaryOf(t.need), custom:true });
+        n++; moved = true;
+      }
+      if(!moved) break;
+    }
+  }
+  // ---- 他们自己写的台词，变成牌 ----
+  if(p.call){
+    out.push({ l:3, t:'d', x:"现在，用这个称呼叫我一声：「" + p.call + "」。", via:"names", custom:true });
+  }
+  if(p.start){
+    out.push({ l:5, t:'t', x:"你写下的开场是「" + p.start + "」。现在，说给我听。", via:"own", custom:true });
+  }
+  if(p.mid){
+    out.push({ l:5, t:'t', x:"「" + p.mid + "」——这句你敢不敢当面念出来。", via:"own", custom:true });
+  }
+  if(p.end){
+    out.push({ l:5, t:'t', x:"事后你最想听到「" + p.end + "」。现在，说给我听。", via:"own", custom:true });
+  }
+
+  return shuffle(out);
+}
+
+function saveCustomPack(p, cards){
+  try{
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify({ p, cards, ts: Date.now() }));
+  }catch(e){}
+}
+function loadCustomPack(){
+  try{
+    const raw = localStorage.getItem(CUSTOM_KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && Array.isArray(o.cards) && o.cards.length) ? o : null;
+  }catch(e){ return null; }
+}
+
+
+
+/* ---------- 关系档案页 ---------- */
+function renderKB(){
+  const body = $("#kb-body");
+  if(!body) return;
+  const A = ($("#name-a").value || "").trim() || S.names[0];
+  const B = ($("#name-b").value || "").trim() || S.names[1];
+  S.names = [A.slice(0,8), B.slice(0,8)];
+
+  const rep = kbReport();
+  const pct = Math.round((1 - rep.dodgeRate) * 100);
+
+  const bar = (r)=>{
+    const cls = r.seen === 0 ? "kbrow never" : (r.rate !== null && r.rate <= 50 ? "kbrow dodge" : "kbrow");
+    const w = r.seen === 0 ? 0 : (r.rate === null ? 0 : r.rate);
+    const num = r.seen === 0 ? "没聊过" : (r.rate + "%");
+    return '<div class="' + cls + '"><div class="nm">' + esc(r.k) + '</div>' +
+           '<div class="bar"><i style="width:' + w + '%"></i></div>' +
+           '<div class="num">' + num + '</div></div>';
+  };
+
+  const touchedRows  = rep.touched.filter(r=>r.seen>0).sort((a,b)=>b.seen-a.seen).map(bar).join("");
+  const untouchedRows= rep.untouched.map(bar).join("");
+
+  const dodgeList = rep.dodgy.length
+    ? rep.dodgy.map(r=>'<div class="kbrow dodge"><div class="nm">' + esc(r.k) + '</div>' +
+        '<div class="bar"><i style="width:' + r.rate + '%"></i></div>' +
+        '<div class="num">' + r.dodge + '/' + r.seen + '</div></div>').join("")
+    : '<div class="tiny" style="text-align:left">还没有反复躲的地方。要么很坦诚，要么还没聊到。</div>';
+
+  body.innerHTML =
+    '<div style="text-align:center;padding-top:6px">' +
+      '<div class="pill">' + esc(A) + ' × ' + esc(B) + '</div>' +
+      '<h2 class="h2" style="margin-top:18px;font-size:26px">你们聊到哪了</h2>' +
+      '<div class="goldline"></div>' +
+      '<div class="kbstat">' +
+        '<div class="stat"><div class="v">' + rep.sessions + '</div><div class="k">一起玩过</div></div>' +
+        '<div class="stat"><div class="v">' + rep.touched.length + '</div><div class="k">碰过的主题</div></div>' +
+        '<div class="stat"><div class="v">' + pct + '%</div><div class="k">说出口的比例</div></div>' +
+      '</div>' +
+      (rep.hint ? '<div class="kbtip">' + esc(rep.hint) + '</div>' : '') +
+    '</div>' +
+
+    (rep.dodgy.length ?
+    '<div class="kbsec"><div class="h">反复绕过的地方</div>' + dodgeList +
+      '<div class="tiny" style="text-align:left;margin-top:10px;line-height:1.9">' +
+      '这些不是「不能说」，多半是还没找到时机。下次可以从这里开始。</div></div>' : '') +
+
+    '<div class="kbsec"><div class="h">你们聊过的</div>' + (touchedRows || '<div class="tiny" style="text-align:left">还没有记录。玩一局下来就有了。</div>') + '</div>' +
+
+    (function(){
+      const ns = (rep.notes || []).slice(-6).reverse();
+      if(!ns.length) return '';
+      return '<div class="kbsec"><div class="h">你们说过的</div>' +
+        ns.map(n=>{
+          const d=new Date(n.at);
+          return '<div class="quote"><div class="q">' + esc(n.q) + '</div>' +
+                 '<div class="a">「' + esc(n.a) + '」</div>' +
+                 '<div class="t">' + (d.getMonth()+1) + '月' + d.getDate() + '日</div></div>';
+        }).join("") +
+        '<div class="tiny" style="text-align:left;margin-top:10px;line-height:1.9">' +
+        '这些是你们自己说的话，比对错重要。</div></div>';
+    })() +
+
+    '<div class="kbsec"><div class="h">还没碰过的</div>' + untouchedRows +
+      '<div class="tiny" style="text-align:left;margin-top:10px;line-height:1.9">' +
+      '空白不代表不重要，只代表还没聊。原生家庭、界限、意义这几类，通常藏着最多的东西。</div></div>' +
+
+    '<div class="spacer" style="min-height:20px"></div>' +
+    '<div class="stack">' +
+      '<button class="btn" id="kb-go">从没聊过的地方开始</button>' +
+      '<button class="btn ghost" id="kb-back">回到设置</button>' +
+    '</div>' +
+    '<p class="tiny" style="margin-top:14px">只存在这台手机里 · 不上传 · 可随时清除</p>';
+
+  $("#kb-back").addEventListener("click", ()=>show("s-setup"));
+  $("#kb-go").addEventListener("click", ()=>{
+    const pri = kbPriority();
+    if(!pri.length){ flash("都已经碰过了 · 直接开始吧"); show("s-setup"); return; }
+    S.kbPri = pri;
+    renderKbStatus();
+    flash("下次优先聊：" + pri.join(" · "));
+    show("s-setup");
+  });
+}
+
+function renderKbStatus(){
+  const el = $("#kb-status");
+  if(!el) return;
+  const A = ($("#name-a").value || "").trim();
+  const B = ($("#name-b").value || "").trim();
+  if(!A || !B){ el.textContent = "填上两个人的名字，就能看到你们的档案。"; return; }
+  const rep = kbReport();
+  if(!rep.sessions){ el.textContent = "还没有记录。玩一局，这里会长出你们的样子。"; return; }
+  const pri = kbPriority();
+  el.innerHTML = '已经一起玩过 <b style="color:var(--gold)">' + rep.sessions + '</b> 次 · 碰过 ' +
+    rep.touched.length + ' 个主题' +
+    (pri.length ? ' · 建议下次聊 <b style="color:var(--gold)">' + pri.join("、") + '</b>' : '');
+}
+
+/* ---------- 定制页逻辑 ---------- */
+const CY = { low:"", cling:"", dist:"", cards:[], params:null, generated:false };
+
+function cval(sel){ const e = $(sel); return e ? String(e.value || "").trim() : ""; }
+
+function bindChipGroup(sel, key){
+  const box = $(sel);
+  if(!box) return;
+  box.querySelectorAll(".tchip").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      box.querySelectorAll(".tchip").forEach(o=>o.classList.remove("on"));
+      el.classList.add("on");
+      CY[key] = el.dataset.v;
+      ping(680,.13,.03);
+    });
+  });
+}
+bindChipGroup("#c-low", "low");
+bindChipGroup("#c-cling", "cling");
+bindChipGroup("#c-dist", "dist");
+
+function readCustomParams(){
+  const a = cval("#c-a") || "我";
+  const b = cval("#c-b") || "TA";
+  const nm = v => v === "me" ? a : (v === "ta" ? b : "你们俩");
+  return {
+    a, b,
+    place:  cval("#c-place"),
+    date:   cval("#c-date"),
+    lowName:   CY.low   ? nm(CY.low)   : "",
+    clingName: CY.cling ? nm(CY.cling) : "",
+    secret: cval("#c-secret"),
+    unsaid: cval("#c-unsaid"),
+    distance: CY.dist || "",
+    since:  cval("#c-since"),
+    call:  cval("#c-call"),
+    start: cval("#c-start"),
+    mid:   cval("#c-mid"),
+    end:   cval("#c-end")
+  };
+}
+
+const VIA_LABEL = {
+  names:"称呼", place:"地点", date:"时间", low:"低头",
+  cling:"黏人", secret:"那件事", unsaid:"没说开", own:"台词",
+  far:"异地", same:"同城", since:"时长"
+};
+
+function renderCustomPreview(cards){
+  const box = $("#custom-preview");
+  if(!box) return;
+  if(!cards.length){
+    box.innerHTML = '<div class="tiny" style="margin-top:18px;color:#d8a5a5">一个字段都没填，出不了题。至少填一个称呼。</div>';
+    return;
+  }
+  box.innerHTML =
+    '<div class="label" style="margin-top:20px">生成了 ' + cards.length + ' 张</div>' +
+    cards.map(c =>
+      '<div class="genitem"><div class="tl"><b>L' + c.l + '</b>' + (c.t === "t" ? "真心" : "冒险") +
+      (c.via ? '<span class="via">' + (VIA_LABEL[c.via] || "") + '</span>' : '') + '</div>' +
+      '<div>' + esc(c.x) + '</div></div>').join("") +
+    '<div class="tiny" style="margin-top:14px">左边小字是这张牌用了你填的哪一项 · 换一批结果不同</div>';
+}
+
+function doGenerate(){
+  const params = readCustomParams();
+  const cards = buildCustomPack(params);
+  CY.cards = cards; CY.params = params; CY.generated = true;
+  renderCustomPreview(cards);
+  $("#btn-gen-more").style.display = cards.length ? "block" : "none";
+  $("#btn-gen").textContent = cards.length ? ("存下这 " + cards.length + " 张") : "再多填几项";
+  ping(700,.25,.05);
+}
+
+function doSaveCustom(){
+  if(!CY.cards.length){ flash("先填几项，再生成"); return; }
+  saveCustomPack(CY.params, CY.cards);
+  updateCustomStatus();
+  flash("存好了 · 开局会自己混进来");
+  show("s-setup");
+}
+
+function updateCustomStatus(){
+  const el = $("#custom-status");
+  if(!el) return;
+  const pk = loadCustomPack();
+  if(!pk || !pk.cards.length){
+    el.textContent = "用你们的暗号、常去的地方，生成只有你们答得上来的题。";
+    return;
+  }
+  el.innerHTML = '已存下 <b style="color:var(--gold)">' + pk.cards.length +
+    ' 张</b> 定制牌 · 开局会自动混进牌堆 · 点上面的按钮可以改';
+}
+
+function openCustom(){
+  const pk = loadCustomPack();
+  CY.generated = false;
+  CY.cards = []; CY.params = null;
+  CY.low = ""; CY.cling = ""; CY.dist = "";
+  document.querySelectorAll("#c-low .tchip, #c-cling .tchip, #c-dist .tchip")
+    .forEach(o=>o.classList.remove("on"));
+  ["#c-a","#c-b","#c-place","#c-date","#c-secret","#c-unsaid","#c-since","#c-call","#c-start","#c-mid","#c-end"]
+    .forEach(sel=>{ const e = $(sel); if(e) e.value = ""; });
+  $("#custom-preview").innerHTML = "";
+  $("#btn-gen-more").style.display = "none";
+  $("#btn-gen").textContent = "生成我的牌";
+
+  if(pk && pk.p){
+    const q = pk.p;
+    if($("#c-a")) $("#c-a").value = q.a || "";
+    if($("#c-b")) $("#c-b").value = q.b || "";
+    if($("#c-place")) $("#c-place").value = q.place || "";
+    if($("#c-date")) $("#c-date").value = q.date || "";
+    if($("#c-secret")) $("#c-secret").value = q.secret || "";
+    if($("#c-unsaid")) $("#c-unsaid").value = q.unsaid || "";
+    if($("#c-since")) $("#c-since").value = q.since || "";
+    if($("#c-call"))  $("#c-call").value  = q.call  || "";
+    if($("#c-start")) $("#c-start").value = q.start || "";
+    if($("#c-mid"))   $("#c-mid").value   = q.mid   || "";
+    if($("#c-end"))   $("#c-end").value   = q.end   || "";
+    CY.dist = q.distance || "";
+    const dm = document.querySelector('#c-dist .tchip[data-v="' + CY.dist + '"]');
+    if(dm) dm.classList.add("on");
+  }
+  show("s-custom");
+}
+
+$("#btn-custom").addEventListener("click", openCustom);
+$("#btn-kb").addEventListener("click", ()=>{ renderKB(); show("s-kb"); });
+$("#btn-gen").addEventListener("click", ()=>{ if(CY.generated) doSaveCustom(); else doGenerate(); });
+$("#btn-gen-more").addEventListener("click", doGenerate);
+
+
+/* =========================================================
+   场景氛围 · 每个场景一套配色与飘落物
+   ========================================================= */
+const THEMES = {
+  cover:    { bg:["#241a3d","#12102a","#05060e"], glow:["217,180,143","207,141,141","120,120,200"], accent:"#d9b48f",
+              motifs:{ petal:8, heart:4, butterfly:3, dot:6 } },
+  school:   { bg:["#2b1c2e","#191228","#0a0810"], glow:["232,185,200","224,160,180","150,130,200"], accent:"#e8b9c8",
+              motifs:{ petal:14, butterfly:4, dot:4 } },
+  hospital: { bg:["#3a4a63","#222c3f","#0d121a"], glow:["186,214,238","214,228,240","130,165,200"], accent:"#bcd3e8",
+              motifs:{ bubble:10, dot:10, star:4 } },
+  plane:    { bg:["#0e1a35","#0a1224","#03060e"], glow:["159,194,232","120,160,210","90,120,200"], accent:"#9fc2e8",
+              motifs:{ star:24, dot:8 } },
+  hotel:    { bg:["#2c1222","#1a0c18","#070409"], glow:["224,162,180","200,120,150","120,60,110"], accent:"#e0a2b4",
+              motifs:{ petal:12, heart:6, dot:4 } },
+  bar:      { bg:["#24101f","#150a15","#06030a"], glow:["224,120,150","180,90,140","110,50,110"], accent:"#e08fa2",
+              motifs:{ heart:4, dot:10, star:6 } },
+  office:   { bg:["#1b202a","#12161e","#06080c"], glow:["185,194,207","150,170,200","110,130,160"], accent:"#b9c2cf",
+              motifs:{ dot:14, star:6 } },
+  home:     { bg:["#2b1d14","#1a1209","#0a0704"], glow:["224,185,143","210,150,110","160,90,80"], accent:"#e0b98f",
+              motifs:{ dot:12, heart:4, petal:5 } },
+  l1:       { bg:["#0f2a2e","#0a1a1e","#04090b"], glow:["120,200,190","90,160,170","70,120,150"], accent:"#9fd3c9",
+              motifs:{ dot:8, bubble:5 } },
+  l2:       { bg:["#12283c","#0b1826","#04080f"], glow:["120,170,210","90,140,190","70,110,170"], accent:"#9cbcd8",
+              motifs:{ dot:10, bubble:4 } },
+  l3:       { bg:["#141c38","#0d1226","#050710"], glow:["150,160,230","120,130,210","90,100,180"], accent:"#b0b8e8",
+              motifs:{ dot:12, star:6 } },
+  l4:       { bg:["#1c1533","#110e24","#06050d"], glow:["200,150,210","160,120,200","110,80,170"], accent:"#d0a8d8",
+              motifs:{ dot:10, star:10, heart:2 } },
+  l5:       { bg:["#1e0f1e","#120816","#050309"], glow:["224,120,140","180,80,120","110,40,90"], accent:"#e08fa2",
+              motifs:{ heart:6, petal:8, star:8 } }
+};
+
+const MOTIF_SVG = {
+  petal:'<svg viewBox="0 0 20 28"><path d="M10 1C15 7 19 11 19 17a9 9 0 0 1-18 0C1 11 5 7 10 1z" fill="currentColor"/></svg>',
+  heart:'<svg viewBox="0 0 24 24"><path d="M12 21S3.8 16.2 1.6 11.4A5.6 5.6 0 0 1 12 5.6a5.6 5.6 0 0 1 10.4 5.8C20.2 16.2 12 21 12 21z" fill="currentColor"/></svg>',
+  butterfly:'<svg viewBox="0 0 24 24"><path d="M11.4 12C9.2 7.4 5 4.6 3 6.8s.4 8.8 4.6 9c2.2.1 3.2-1.6 3.8-3.8z" fill="currentColor"/><path d="M12.6 12c2.2-4.6 6.4-7.4 8.4-5.2s-.4 8.8-4.6 9c-2.2.1-3.2-1.6-3.8-3.8z" fill="currentColor" opacity=".78"/><rect x="11.4" y="6" width="1.2" height="12" rx=".6" fill="currentColor"/></svg>',
+  dot:'<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="3.6" fill="currentColor"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 1.5l1.7 8.1 8.1 1.7-8.1 1.7L12 21.5l-1.7-8.5L2.2 11.3l8.1-1.7z" fill="currentColor"/></svg>',
+  bubble:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8.6" cy="8.6" r="2.3" fill="currentColor" opacity=".45"/></svg>'
+};
+const MOTIF_MOTION = { petal:"m-float", heart:"m-float", butterfly:"m-flutter", dot:"m-float", star:"m-twinkle", bubble:"m-bubble" };
+const MOTIF_COLOR  = { petal:"#e8b9c8", heart:"#e08fa2", butterfly:"#d9b48f", dot:"#cbb6a0", star:"#cfe0f5", bubble:"#a9c6dd" };
+
+function buildMotifs(t){
+  const box = $("#motifs");
+  if(!box) return;
+  box.innerHTML = "";
+  const spec = t.motifs || {};
+  let n = 0;
+  Object.keys(spec).forEach(kind=>{
+    const count = spec[kind];
+    for(let i = 0; i < count && n < 30; i++, n++){
+      const el = document.createElement("div");
+      const motion = MOTIF_MOTION[kind] || "m-float";
+      el.className = "motif " + motion;
+      const size = 7 + Math.random() * 15;
+      el.style.width = size.toFixed(1) + "px";
+      el.style.height = size.toFixed(1) + "px";
+      el.style.left = (Math.random() * 96).toFixed(1) + "%";
+      el.style.top = motion === "m-twinkle"
+        ? (Math.random() * 100).toFixed(1) + "%"
+        : (72 + Math.random() * 40).toFixed(1) + "%";
+      el.style.color = MOTIF_COLOR[kind] || "#fff";
+      el.style.setProperty("--dx", ((Math.random() * 10) - 5).toFixed(1) + "vw");
+      el.style.setProperty("--rot", (Math.random() * 360).toFixed(0) + "deg");
+      const dur = (motion === "m-twinkle" ? 3 + Math.random() * 5 : 14 + Math.random() * 20);
+      el.style.animationDuration = dur.toFixed(1) + "s";
+      el.style.animationDelay = (-Math.random() * dur).toFixed(1) + "s";
+      el.innerHTML = MOTIF_SVG[kind] || MOTIF_SVG.dot;
+      box.appendChild(el);
+    }
+  });
+}
+
+let curTheme = null;
+function applyTheme(name){
+  const t = THEMES[name] || THEMES.cover;
+  if(name === curTheme) return;
+  curTheme = name;
+  const r = document.documentElement.style;
+  r.setProperty("--bg1", t.bg[0]);
+  r.setProperty("--bg2", t.bg[1]);
+  r.setProperty("--bg3", t.bg[2]);
+  r.setProperty("--glow",  t.glow[0]);
+  r.setProperty("--glow2", t.glow[1]);
+  r.setProperty("--glow3", t.glow[2]);
+  r.setProperty("--accent", t.accent);
+  document.body.setAttribute("data-theme", name);
+  buildMotifs(t);
+}
+
+function themeForTable(){
+  const sc = (S.scene && S.scene !== "none") ? sceneById(S.scene) : null;
+  return sc ? sc.id : ("l" + S.layer);
+}
+
+applyTheme("cover");   // 启动就是封面色
+
+/* =========================================================
+   封面
+   ========================================================= */
+const consentEl = $("#consent");
+consentEl.addEventListener("click", ()=>{
+  consentEl.classList.toggle("on");
+  const on = consentEl.classList.contains("on");
+  consentEl.querySelector(".box").textContent = on ? "✓" : "";
+  consentEl.classList.remove("needit");
+  if(on) ping(620,.16,.04);
+});
+$("#btn-enter").addEventListener("click", ()=>{
+  if(!consentEl.classList.contains("on")){
+    consentEl.classList.add("needit", "shake");
+    setTimeout(()=>consentEl.classList.remove("shake"), 520);
+    flash("先点一下上面那一行，确认两个人都愿意");
+    ping(300,.22,.05);
+    return;
+  }
+  ping(520,.2,.05);
+  show("s-setup");
+});
+
+/* =========================================================
+   设置
+   ========================================================= */
+document.querySelectorAll("#mode-opts .opt").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    document.querySelectorAll("#mode-opts .opt").forEach(o=>o.classList.remove("on"));
+    el.classList.add("on");
+    S.mode = el.dataset.mode;
+    ping(680,.14,.035);
+  });
+});
+document.querySelectorAll("#deck-opts .opt").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    document.querySelectorAll("#deck-opts .opt").forEach(o=>o.classList.remove("on"));
+    el.classList.add("on");
+    S.deck = el.dataset.deck;
+    S.adultOK = false;
+    $("#deep-warn").style.display = (S.deck === "deep") ? "block" : "none";
+    const ac = $("#adult-consent");
+    ac.style.display = (S.deck === "adult") ? "flex" : "none";
+    ac.classList.remove("on");
+    ac.querySelector(".box").textContent = "";
+    ping(S.deck === "adult" ? 360 : (S.deck === "deep" ? 430 : 700), .2, .04);
+  });
+});
+
+const adultEl = $("#adult-consent");
+adultEl.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  adultEl.classList.toggle("on");
+  S.adultOK = adultEl.classList.contains("on");
+  adultEl.querySelector(".box").textContent = S.adultOK ? "✓" : "";
+  if(S.adultOK) ping(560,.2,.045);
+});
+
+document.querySelectorAll("#topic-opts .tchip").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    document.querySelectorAll("#topic-opts .tchip").forEach(o=>o.classList.remove("on"));
+    el.classList.add("on");
+    S.topic = el.dataset.topic;
+    ping(660,.13,.03);
+  });
+});
+
+// 情景演绎：从 SCENES 生成芯片
+(function buildSceneChips(){
+  const box = $("#scene-opts");
+  if(!box) return;
+  let html = '<div class="tchip on" data-scene="none">不进场景</div>';
+  SCENES.forEach(sc=>{
+    html += '<div class="tchip" data-scene="' + sc.id + '">' + asc2(sc.name) + '</div>';
+  });
+  box.innerHTML = html;
+  box.querySelectorAll(".tchip").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      box.querySelectorAll(".tchip").forEach(o=>o.classList.remove("on"));
+      el.classList.add("on");
+      S.scene = el.dataset.scene;
+      ping(S.scene === "none" ? 640 : 460, .18, .04);
+    });
+  });
+})();
+function asc2(t){ return String(t).replace(/[&<>"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+
+document.querySelectorAll("[data-back]").forEach(b=>{
+  b.addEventListener("click", ()=>show(b.dataset.back));
+});
+
+// 名字一改，就去找有没有「上一次」
+["#name-a", "#name-b"].forEach(sel=>{
+  const el = $(sel);
+  if(!el) return;
+  let t = null;
+  el.addEventListener("input", ()=>{ clearTimeout(t); t = setTimeout(()=>{ renderHistSlot(); renderKbStatus(); }, 350); });
+});
+
+$("#btn-clear").addEventListener("click", ()=>{
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  renderHistSlot();
+  flash("记录清掉了 · 像没发生过一样");
+});
+
+$("#btn-start").addEventListener("click", ()=>{
+  if(S.deck === "adult" && !S.adultOK){
+    flash("成人档要两个人都点一下确认");
+    if(adultEl.scrollIntoView) adultEl.scrollIntoView({ behavior:"smooth", block:"center" });
+    return;
+  }
+  const a = ($("#name-a").value || "").trim() || "你";
+  const b = ($("#name-b").value || "").trim() || "TA";
+  S.names = [a.slice(0,8), b.slice(0,8)];
+  const m = MODES[S.mode];
+  S.maxRounds = m.rounds;
+  S.maxLayer  = Math.min(DECKS[S.deck].maxLayer, m.maxLayer);
+  S.round = 0; S.turn = 0; S.layer = 1; S.gauge = 0;
+  S.passes = [2,2]; S.used = new Set(); S.current = null;
+  S.phase = "choose"; S.answered = 0; S.skipped = 0; S.reached = 1; S.log = [];
+  const cpack = loadCustomPack();
+  S.custom = (cpack && cpack.cards ? cpack.cards : []).map((c,i)=>Object.assign({}, c, { id:"cu:"+i }));
+  S.prevCards = new Set(((lastSession() || {}).cards || []).map(c=>c.x));
+  kbMigrate(["你","TA"], S.names);
+  (function(){ const kb = kbOf(S.names); kb.sessions = (kb.sessions||0) + 1; kbWrite(S.names, kb); })();
+  S.record = null;
+  S.kbPri = S.kbPri || kbPriority();
+  show("s-table");
+  applyTheme(themeForTable());
+  render();
+  ping(480,.35,.05);
+  buildSceneQueue();
+  if(S.scene && S.scene !== "none") showSceneIntro();
+});
+
+/* =========================================================
+   牌桌渲染
+   ========================================================= */
+$("#btn-sound").addEventListener("click", ()=>{
+  S.muted = !S.muted;
+  $("#btn-sound").textContent = S.muted ? "×" : "♪";
+  $("#btn-sound").style.color = S.muted ? "var(--ink-3)" : "var(--gold)";
+});
+$("#btn-finish").addEventListener("click", ()=>endGame("manual"));
+
+function buildSceneQueue(){
+  const sc = (S.scene && S.scene !== "none") ? sceneById(S.scene) : null;
+  if(!sc){ S.sceneQ = []; return; }
+  const shuffle = a => { const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; };
+  const q = [];
+  sc.acts.forEach(a => { shuffle(a.cards).forEach(c => q.push(c)); });   // 幕与幕之间有顺序，幕内打乱
+  S.sceneQ = q;
+}
+
+function currentName(){ return S.names[S.turn]; }
+function otherName(){ return S.names[1 - S.turn]; }
+
+function render(){
+  // 顶部信息
+  $("#round-info").textContent = "第 " + Math.min(S.round + 1, S.maxRounds) + " / " + S.maxRounds + " 轮";
+  $("#pass-info").textContent = "护身符 " + S.passes[0] + " : " + S.passes[1];
+  $("#layer-name").textContent = layerOf(S.layer).name;
+  applyTheme(themeForTable());
+
+  // 情景条
+  const bar = $("#scene-bar");
+  if(bar){
+    const sc = (S.scene && S.scene !== "none") ? sceneById(S.scene) : null;
+    if(sc){
+      const total = sc.acts.reduce((a,b)=>a+b.cards.length, 0);
+      const shown = (S.current && S.current.sceneCard) ? S.current : null;
+      const left  = S.sceneQ.length;
+      const doneN = Math.min(total, total - left + (shown ? 1 : 0));
+      const cur = shown ? shown.act
+                : (S.sceneQ[0] ? S.sceneQ[0].act : sc.acts.length - 1);
+      const actName = sc.acts[cur] ? sc.acts[cur].name : "";
+      bar.style.display = "block";
+      bar.innerHTML =
+        '<b style="color:var(--gold);font-weight:400">' + esc(sc.name) + '</b>' +
+        ((left || shown) ? ' · 第 ' + (cur + 1) + ' 幕「' + esc(actName) + '」· ' + doneN + '/' + total : ' · 四幕演完了') +
+        '<div style="margin-top:6px;opacity:.75;font-size:10.5px">' + esc(sc.place) + '</div>';
+    }else{
+      bar.style.display = "none";
+    }
+  }
+
+  // 水位条
+  document.querySelectorAll("#depthmap .dseg").forEach(seg=>{
+    const l = +seg.dataset.l;
+    const bar = seg.querySelector("i");
+    seg.style.display = (l > S.maxLayer) ? "none" : "";
+    if(l < S.layer)      { seg.classList.add("done");  bar.style.width = "100%"; }
+    else if(l === S.layer){ seg.classList.remove("done"); bar.style.width = ((S.gauge / PER_LAYER) * 100) + "%"; }
+    else                 { seg.classList.remove("done"); bar.style.width = "0%"; }
+  });
+
+  const stage = $("#stage");
+  const acts  = $("#actions");
+
+  /* ---------- 过渡态（水位上涨等） ---------- */
+  if(S.phase === "wait"){ stage.innerHTML = ""; acts.innerHTML = ""; return; }
+
+  /* ---------- 阶段一：选牌 ---------- */
+  if(S.phase === "choose"){
+    const blind = (S.round > 0 && S.round % 5 === 0);
+    const L = layerOf(S.layer);
+    if(blind){
+      stage.innerHTML =
+        '<div class="turn-tip">暗牌轮 · 轮到你 <b>' + esc(currentName()) + '</b></div>' +
+        '<div class="chooser"><div class="backcard blind" id="draw-blind">' +
+          '<div class="mark">?</div>' +
+          '<div class="nm" style="letter-spacing:.3em">暗 牌</div>' +
+          '<div class="lvl">牌面朝下 · 摸了才知道</div>' +
+        '</div></div>' +
+        '<p class="tiny" style="margin-top:16px">第五轮的牌是不给看的。闭上眼睛，摸一张。</p>';
+      acts.innerHTML = "";
+      $("#draw-blind").addEventListener("click", ()=>{
+        drawCard(Math.random() < .5 ? "t" : "d");
+      });
+      return;
+    }
+    stage.innerHTML =
+      '<div class="turn-tip">轮到 <b>' + esc(currentName()) + '</b> 了 · ' + esc(L.desc) + '</div>' +
+      '<div class="chooser">' +
+        '<div class="backcard" data-type="t"><div class="mark">心</div>' +
+          '<div class="nm">真心话</div><div class="lvl">' + esc(L.name) + '</div></div>' +
+        '<div class="backcard" data-type="d"><div class="mark">✦</div>' +
+          '<div class="nm">大冒险</div><div class="lvl">' + esc(L.name) + '</div></div>' +
+      '</div>';
+    acts.innerHTML = "";
+    stage.querySelectorAll(".backcard").forEach(el=>{
+      el.addEventListener("click", ()=>drawCard(el.dataset.type));
+    });
+    return;
+  }
+
+  /* ---------- 阶段二：看牌 ---------- */
+  if(S.phase === "card" && S.current){
+    const c = S.current;
+    const L = layerOf(c.l);
+    const isT = c.t === "t";
+    const long = c.x.length > 26;
+    stage.innerHTML =
+      '<div class="bigcard">' +
+        '<div class="ctop">' +
+          '<span class="chip ' + (isT ? 'rose' : 'gold') + '">' + (isT ? '真心话' : '大冒险') + '</span>' +
+          '<span class="chip">' + esc(layerLabel(c)) + '</span>' +
+          (c.custom ? '<span class="chip gold">定制</span>' : '') +
+          (c.fromLast ? '<span class="chip gold">上次答过</span>' : '') +
+        '</div>' +
+        '<div class="ctext' + (long ? ' long' : '') + '">' + esc(c.x) + '</div>' +
+        (c.why ? '<div class="why" id="why-box" style="display:none">' + esc(c.why) + '</div>' : '') +
+        '<div class="cfoot">' + esc(currentName()) + ' 回答 · 答完把手机交给对方裁定</div>' +
+      '</div>';
+    acts.innerHTML =
+      (c.why ? '<button class="btn ghost" id="btn-why" style="font-size:12px">为什么要问这个</button>' : '') +
+      '<button class="btn" id="btn-done">答完了</button>' +
+      '<button class="btn ghost" id="btn-pass"' + (S.passes[S.turn] <= 0 ? " disabled" : "") + '>' +
+        '用护身符跳过（剩 ' + S.passes[S.turn] + ' 张）' +
+      '</button>';
+    const whyBtn = $("#btn-why");
+    if(whyBtn) whyBtn.addEventListener("click", ()=>{
+      const box = $("#why-box");
+      if(!box) return;
+      const open = box.style.display !== "none";
+      box.style.display = open ? "none" : "block";
+      whyBtn.textContent = open ? "为什么要问这个" : "收起";
+      ping(700,.12,.03);
+    });
+    $("#btn-done").addEventListener("click", ()=>{ S.phase = "judge"; ping(660,.18,.04); render(); });
+    $("#btn-pass").addEventListener("click", ()=>usePass());
+    return;
+  }
+
+  /* ---------- 阶段三：对方裁定 ---------- */
+  if(S.phase === "judge" && S.current){
+    const c = S.current;
+    const L = layerOf(c.l);
+    const isT = c.t === "t";
+    const long = c.x.length > 26;
+    stage.innerHTML =
+      '<div class="bigcard">' +
+        '<div class="ctop">' +
+          '<span class="chip ' + (isT ? 'rose' : 'gold') + '">' + (isT ? '真心话' : '大冒险') + '</span>' +
+          '<span class="chip">' + esc(layerLabel(c)) + '</span>' +
+          (c.custom ? '<span class="chip gold">定制</span>' : '') +
+          (c.fromLast ? '<span class="chip gold">上次答过</span>' : '') +
+        '</div>' +
+        '<div class="ctext' + (long ? ' long' : '') + '">' + esc(c.x) + '</div>' +
+        '<div class="cfoot">' + esc(currentName()) + ' 已经答完</div>' +
+      '</div>';
+    acts.innerHTML =
+      '<div class="judge">' +
+        '<div class="who">请把手机交给 ' + esc(otherName()) + '</div>' +
+        '<div class="ask">' + (c.fromLast ? '上次你们也答过这张 · 现在的答案，一样吗？' : '这一句，够不够诚？') + '</div>' +
+      '</div>' +
+      '<input class="input" id="ans-note" placeholder="（可选）留一句 TA 刚说的话 · 会存进你们的档案" maxlength="80" style="margin-bottom:10px;font-size:13px;padding:11px 13px" />' +
+      '<div class="btn-row">' +
+        '<button class="btn" id="btn-honest" style="flex:1.2">够 诚</button>' +
+        '<button class="btn ghost" id="btn-dodge" style="flex:1">有点躲</button>' +
+      '</div>';
+    $("#btn-honest").addEventListener("click", ()=>judge(true));
+    $("#btn-dodge").addEventListener("click", ()=>judge(false));
+    return;
+  }
+}
+
+/* ---------- 抽牌 ---------- */
+/* 全牌池：常规 368 + 深聊 60。深聊带 why（为什么问这个）与 deep 标记 */
+const ALL_DEEP = (window.DEEP || []).map((c,i)=>Object.assign({ id:"dp:"+i, deep:true }, c));
+const ALL_MEANING = (window.MEANING || []).map((c,i)=>Object.assign({ id:"mn:"+i, deep:true, meaning:true }, c));
+
+function topicPool(type){
+  const tp = S.topic;
+  return CARDS.filter(c =>
+    c.l === S.layer && c.t === type && !S.used.has(c.id) &&
+    (!c.topic || c.topic === tp)
+  );
+}
+function deepPool(type){
+  return ALL_DEEP.concat(ALL_MEANING)
+    .filter(c => c.l === S.layer && c.t === type && !S.used.has(c.id));
+}
+/* 档案优先：补没碰过的主题、追反复躲的主题 */
+function kbBoost(list){
+  const pri = S.kbPri || [];
+  if(!pri.length) return list;
+  const hot = list.filter(c => pri.includes(c.theme));
+  return (hot.length && Math.random() < 0.55) ? hot : list;
+}
+function drawCard(type){
+  if(S.phase !== "choose") return;
+
+  // ---- 情景牌：按幕往下走，一晚上就是一整出戏 ----
+  const sc = (S.scene && S.scene !== "none") ? sceneById(S.scene) : null;
+  if(sc && S.sceneQ.length){
+    const curAct = S.sceneQ[0].act;            // 只在当前这一幕里挑，绝不跨幕
+    let idx = S.sceneQ.findIndex(c => c.act === curAct && c.t === type);
+    if(idx < 0) idx = S.sceneQ.findIndex(c => c.act === curAct);
+    if(idx < 0) idx = 0;
+    const card = S.sceneQ.splice(idx, 1)[0];
+    S.used.add(card.id);
+    S.current = Object.assign({}, card, { l:4, sc: sc.id, sceneCard:true });
+    S.current.fromLast = !!(S.prevCards && S.prevCards.has(card.x));
+    S.phase = "card";
+    ping(700,.28,.05);
+    render();
+    return;
+  }
+
+  // ---- 定制牌（用了专属信息的那批）----
+  if(S.custom && S.custom.length && Math.random() < 0.28){
+    const cp = S.custom.filter(c => c.l <= S.layer && !S.used.has(c.id));
+    if(cp.length){
+      const card = cp[Math.floor(Math.random() * cp.length)];
+      S.used.add(card.id);
+      S.current = Object.assign({}, card, { custom:true });
+      S.current.fromLast = !!(S.prevCards && S.prevCards.has(card.x));
+      S.phase = "card";
+      ping(820,.24,.05);
+      render();
+      return;
+    }
+  }
+
+  // ---- 深聊 / 共鸣牌：越往深处，占比越高（原来固定 35%，导致深层反而变浅）----
+  const deepChance = [0.34, 0.40, 0.48, 0.56, 0.62][Math.min(4, S.layer - 1)];
+  if(Math.random() < deepChance){
+    let dp = kbBoost(deepPool(type));
+    if(dp.length){
+      const card = dp[Math.floor(Math.random() * dp.length)];
+      S.used.add(card.id);
+      S.current = card;
+      S.current.fromLast = !!(S.prevCards && S.prevCards.has(card.x));
+      S.phase = "card";
+      ping(840,.26,.05);
+      render();
+      return;
+    }
+  }
+
+  let pool = topicPool(type);
+  if(!pool.length){
+    CARDS.forEach(c => {
+      if(c.l === S.layer && c.t === type && (!c.topic || c.topic === S.topic)) S.used.delete(c.id);
+    });
+    pool = topicPool(type);
+  }
+  if(!pool.length){ // 该层没有这个类型，退到另一类型
+    pool = CARDS.filter(c => c.l === S.layer && !S.used.has(c.id));
+  }
+  if(!pool.length) return;
+  // 选了专题，就让专题牌更常出现
+  if(S.topic && S.topic !== "none"){
+    const tp = pool.filter(c => c.topic === S.topic);
+    if(tp.length && Math.random() < .5) pool = tp;
+  }
+  const card = pool[Math.floor(Math.random() * pool.length)];
+  S.used.add(card.id);
+  card.fromLast = !!(S.prevCards && S.prevCards.has(card.x));
+  S.current = card;
+  S.phase = "card";
+  ping(760,.26,.05);
+  render();
+}
+
+/* ---------- 用护身符 ---------- */
+function usePass(){
+  if(S.phase !== "card") return;
+  if(S.passes[S.turn] <= 0) return;
+  S.phase = "wait";
+  S.passes[S.turn]--;
+  S.skipped++;
+  S.log.push({who:S.turn, text:"（跳过了一张）", layer:S.layer});
+  ping(320,.3,.05);
+  flash("护身符 −1 · 这张不算数");
+  nextTurn();
+}
+
+/* ---------- 裁定 ---------- */
+function judge(honest){
+  if(S.phase !== "judge") return;   // 防止重复判定
+  const noteEl = $("#ans-note");
+  const note = noteEl ? (noteEl.value || "").trim() : "";
+  S.phase = "wait";
+  const c = S.current;
+  S.answered++;
+  S.log.push({ who:S.turn, text:c.x, layer:c.l, honest });
+  kbRecord(c.theme, c.x, honest, note);    // 写进关系档案（含那句原话）
+  if(honest){
+    S.gauge++;
+    ping(880,.3,.055);
+    if(S.gauge >= PER_LAYER){
+      if(S.layer < S.maxLayer){
+        const up = S.layer + 1;
+        S.layer = up; S.gauge = 0; S.reached = Math.max(S.reached, up);
+        const L = layerOf(up);
+        showOverlay("再深一层", L.name, L.desc);
+        setTimeout(()=>{ nextTurn(); }, 60);
+        return;
+      }else{
+        S.gauge = PER_LAYER;
+        S.reached = Math.max(S.reached, S.layer);
+        flash("已经到底了 · 没有更深的地方");
+      }
+    }else{
+      flash("更深一层");
+    }
+  }else{
+    ping(260,.34,.05);
+    flash("躲一次，就浅一寸");
+  }
+  nextTurn();
+}
+
+function nextTurn(){
+  S.round++;
+  S.turn = 1 - S.turn;
+  S.current = null;
+  S.phase = "choose";
+  if(S.round >= S.maxRounds){ endGame("rounds"); return; }
+  render();
+}
+
+/* ---------- 场景开场 ---------- */
+function castHtml(sc, idx){
+  const c = sc.casts[idx] || sc.casts[0];
+  return '<span>' + asc2(S.names[0]) + ' 演：' + asc2(c[0]) + '</span>' +
+         '<span>' + asc2(S.names[1]) + ' 演：' + asc2(c[1]) + '</span>';
+}
+
+function showSceneIntro(){
+  const sc = sceneById(S.scene);
+  if(!sc) return;
+  document.querySelectorAll(".overlay").forEach(el=>el.remove());   // 清掉可能残留的遮罩
+  S.sceneCast = Math.floor(Math.random() * sc.casts.length);   // 随机分一次角色
+  const ov = document.createElement("div");
+  ov.className = "overlay";
+  ov.style.cssText = "justify-content:center;overflow-y:auto;cursor:auto";
+
+  const total = sc.acts.reduce((a,b)=>a+b.cards.length, 0);
+  ov.innerHTML =
+    '<div class="sceneopen">' +
+      '<div class="pl">进 场 · 共 ' + sc.acts.length + ' 幕 ' + total + ' 张</div>' +
+      '<div class="nm">' + asc2(sc.name) + '</div>' +
+      '<div class="pl2">' + asc2(sc.place) + '</div>' +
+      (sc.note ? '<div class="tiny" style="margin-top:10px;color:var(--gold);opacity:.7">' + asc2(sc.note) + '</div>' : '') +
+      '<div class="line" style="margin-top:18px;color:var(--gold);opacity:.85">' + asc2(sc.mood) + '</div>' +
+      '<div class="cast" id="castbox">' + castHtml(sc, S.sceneCast) + '</div>' +
+      (sc.casts.length > 1
+        ? '<div class="tiny" style="margin-top:12px;cursor:pointer" id="castswap">↺ 换一种角色分配</div>'
+        : '') +
+      '<div class="line" style="margin-top:26px">「' + asc2(sc.open) + '」</div>' +
+      '<div class="tiny" style="margin-top:10px;opacity:.6">' +
+        sc.acts.map((a,i)=>(i+1)+'.'+a.name).join(' → ') + '</div>' +
+    '</div>' +
+    '<div style="margin-top:34px;width:100%;max-width:320px">' +
+      '<button class="btn" id="cast-enter">进 场</button>' +
+    '</div>';
+
+  document.body.appendChild(ov);
+  const swap = ov.querySelector("#castswap");
+  if(swap) swap.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    S.sceneCast = (S.sceneCast + 1) % sc.casts.length;
+    ov.querySelector("#castbox").innerHTML = castHtml(sc, S.sceneCast);
+    ping(620,.15,.03);
+  });
+  const enterBtn = ov.querySelector("#cast-enter");
+  if(enterBtn){
+    enterBtn.addEventListener("click", ()=>{
+      ov.remove(); render(); ping(520,.4,.05);
+    });
+  }else{
+    // 兜底：只要点了遮罩任何地方都能进场
+    ov.addEventListener("click", ()=>{ ov.remove(); render(); });
+  }
+  ping(340,.7,.05);
+  setTimeout(()=>ping(680,.6,.035), 220);
+}
+
+/* ---------- 上浮提示 ---------- */
+function showOverlay(big, name, desc){
+  const d = document.createElement("div");
+  d.className = "overlay";
+  d.innerHTML = '<div class="big">' + esc(big) + '</div>' +
+    '<div class="sm"><span style="font-size:22px;color:var(--gold);letter-spacing:.2em">' + esc(name) + '</span><br>' + esc(desc) + '</div>' +
+    '<div class="tiny" style="margin-top:34px">轻触屏幕继续</div>';
+  d.addEventListener("click", ()=>{ d.remove(); render(); });
+  document.body.appendChild(d);
+  ping(520,.5,.05);
+  setTimeout(()=>ping(780,.5,.035), 140);
+  setTimeout(()=>{ if(d.parentNode){ d.remove(); render(); } }, 4200);
+}
+
+/* =========================================================
+   结算
+   ========================================================= */
+function endGame(reason){
+  document.querySelectorAll(".overlay").forEach(el=>el.remove());
+  const stage = $("#end-stage");
+  $("#actions") && ($("#actions").innerHTML = "");
+  const depth = layerOf(S.reached);
+  S.prevRec = lastSession();          // 先取「上一次」，再记录今天
+  recordSession("", "");
+  (function(){ const kb = kbOf(S.names); kb.deepest = Math.max(kb.deepest||1, S.reached); kbWrite(S.names, kb); })();
+
+  const title = S.reached >= 5 ? "你们把灯关了"
+              : S.reached === 4 ? "你们潜到了最底下"
+              : S.reached === 3 ? "你们到了深处"
+              : S.reached === 2 ? "你们过了浅水"
+              : "你们还停在岸边";
+  const tips = [
+    "",
+    "水浅也有水浅的好。今晚没说完的，留给下一次。",
+    "已经不容易了。真话是会累人的，累说明你们认真了。",
+    "到这一层，很多人就不说话了。你们没有。",
+    "这一层不需要收尾，它自己会留在心里很久。",
+    "无光区没有台词。剩下的，你们自己知道。"
+  ];
+
+  stage.innerHTML =
+    '<div style="text-align:center;padding-top:6px">' +
+      '<div class="pill">这一夜 · ' + esc(MODES[S.mode].name) + '</div>' +
+      '<h2 class="h2" style="margin-top:22px;font-size:30px">' + esc(title) + '</h2>' +
+      '<div class="goldline"></div>' +
+      '<div class="statrow">' +
+        '<div class="stat"><div class="v">' + S.answered + '</div><div class="k">张牌答完</div></div>' +
+        '<div class="stat"><div class="v">' + esc(depth.name) + '</div><div class="k">最深到</div></div>' +
+        '<div class="stat"><div class="v">' + (S.passes[0] + S.passes[1]) + '</div><div class="k">护身符还剩</div></div>' +
+      '</div>' +
+      '<p class="sub" style="margin-bottom:6px">' + esc(tips[S.reached] || "") + '</p>' +
+    '</div>' +
+    '<div style="margin-top:22px">' +
+      '<div class="label" style="text-align:center">最后一句话 · 各写一句给对方</div>' +
+      '<div class="stack" style="margin-top:12px">' +
+        '<textarea class="input" id="last-a" placeholder="' + esc(S.names[0]) + ' 写给 ' + esc(S.names[1]) + ' 的一句话……"></textarea>' +
+        '<textarea class="input" id="last-b" placeholder="' + esc(S.names[1]) + ' 写给 ' + esc(S.names[0]) + ' 的一句话……"></textarea>' +
+      '</div>' +
+    '</div>' +
+    '<div class="spacer" style="min-height:18px"></div>' +
+    '<div class="stack">' +
+      '<button class="btn" id="btn-letter">交给对方</button>' +
+      '<button class="btn ghost" id="btn-again">再来一局</button>' +
+    '</div>' +
+    '<p class="tiny" style="margin-top:14px">这一夜只存在你们这台手机上 · 不出网 · 随时可以清掉</p>' +
+    (function(){
+      const rep = kbReport();
+      if(!rep.sessions) return '';
+      return '<div class="kbtip" style="margin-top:18px">这是你们的第 ' + rep.sessions +
+        ' 次。到现在为止，聊过 ' + rep.touched.length + ' 个主题' +
+        (rep.dodgy.length ? '；' + rep.dodgy[0].k + ' 这一块，你们已经绕开过 ' + rep.dodgy[0].dodge + ' 次' : '') +
+        '。下次可以点「关系档案」看看还差哪。</div>';
+    })();
+
+  $("#btn-letter").addEventListener("click", ()=>{
+    const a = ($("#last-a").value || "").trim();
+    const b = ($("#last-b").value || "").trim();
+    showLetter(a, b);
+  });
+  $("#btn-again").addEventListener("click", ()=>show("s-setup"));
+
+  applyTheme((S.scene && S.scene !== "none") ? S.scene : ("l" + S.reached));
+  show("s-end");
+  ping(420,.6,.05);
+  setTimeout(()=>ping(630,.6,.04), 180);
+}
+
+function showLetter(a, b){
+  const stage = $("#end-stage");
+  recordSession(a, b);
+  const prev = S.prevRec;
+
+  const rows = [];
+  if(a) rows.push('<div class="letter"><div class="to">' + esc(S.names[0]) + ' 写给 ' + esc(S.names[1]) + '</div><div class="body">' + esc(a) + '</div></div>');
+  if(b) rows.push('<div class="letter"><div class="to">' + esc(S.names[1]) + ' 写给 ' + esc(S.names[0]) + '</div><div class="body">' + esc(b) + '</div></div>');
+  if(!rows.length){
+    rows.push('<div class="letter"><div class="body" style="color:var(--ink-3);font-size:14px">没有写下也没关系。<br>刚刚说出口的那些，已经算数了。</div></div>');
+  }
+
+  // 月度回访 · 对比
+  let cmp = "";
+  if(prev){
+    const pd = new Date(prev.date);
+    const days = Math.floor((Date.now() - pd.getTime()) / 86400000);
+    const daysLabel = days <= 0 ? "今天" : days + " 天前";
+    const pL = LAYERS[prev.layer - 1];
+    const arrow = (now, before) => now > before ? "up" : "";
+    cmp =
+      '<div class="cmp">' +
+        '<div class="h">和上一次比 · ' + (pd.getMonth()+1) + '月' + pd.getDate() + '日（' + daysLabel + '）</div>' +
+        '<div class="row"><span>最深到</span><span><b class="' + arrow(S.reached, prev.layer) + '">' + esc(pL.name) + ' → ' + esc(layerOf(S.reached).name) + '</b></span></div>' +
+        '<div class="row"><span>答了几张</span><span><b class="' + arrow(S.answered, prev.answered) + '">' + prev.answered + ' → ' + S.answered + '</b></span></div>' +
+        (prev.noteA ? '<div class="last"><i>' + esc(S.names[0]) + ' 上次写的是</i>「' + esc(prev.noteA) + '」</div>' : '') +
+        (prev.noteB ? '<div class="last"><i>' + esc(S.names[1]) + ' 上次写的是</i>「' + esc(prev.noteB) + '」</div>' : '') +
+        '<div class="tiny" style="margin-top:12px;text-align:left;color:var(--gold);opacity:.8">不是要你答得一样。是想看看，你有没有变。</div>' +
+      '</div>';
+  }
+
+  stage.innerHTML =
+    '<div style="text-align:center;padding-top:6px">' +
+      '<div class="pill">交给对方</div>' +
+      '<h2 class="h2" style="margin-top:20px;font-size:26px">越诚实，水越深</h2>' +
+      '<div class="goldline"></div>' +
+    '</div>' +
+    rows.join("") +
+    cmp +
+    '<div class="spacer" style="min-height:14px"></div>' +
+    '<div class="stack">' +
+      '<button class="btn" id="btn-save">保存这一夜（存成图片）</button>' +
+      '<button class="btn ghost" id="btn-again2">再来一局</button>' +
+    '</div>';
+  $("#btn-again2").addEventListener("click", ()=>show("s-setup"));
+  $("#btn-save").addEventListener("click", ()=>saveNight(a, b));
+  ping(700,.5,.045);
+}
+
+/* ---------- 生成分享图 ---------- */
+function saveNight(a, b){
+  const W = 1080, H = 1500;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+
+  const bg = g.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#16203a"); bg.addColorStop(.5, "#0a1120"); bg.addColorStop(1, "#04060c");
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+  const rg = g.createRadialGradient(W * .5, H * .3, 0, W * .5, H * .3, W * .95);
+  rg.addColorStop(0, "rgba(217,180,143,.20)"); rg.addColorStop(1, "rgba(217,180,143,0)");
+  g.fillStyle = rg; g.fillRect(0, 0, W, H);
+
+  g.strokeStyle = "rgba(217,180,143,.16)"; g.lineWidth = 2;
+  g.strokeRect(48, 48, W - 96, H - 96);
+
+  const serif = '"Songti SC","STSong","Noto Serif SC",serif';
+  const center = (txt, y, size, color, ls) => {
+    g.font = size + "px " + serif;
+    g.fillStyle = color;
+    g.textAlign = "center";
+    if(ls){ // 手动字距
+      const chars = [...txt];
+      const widths = chars.map(c => g.measureText(c).width + ls);
+      const total = widths.reduce((s, w) => s + w, 0) - ls;
+      let x = (W - total) / 2;
+      g.textAlign = "left";
+      chars.forEach((c, i) => { g.fillText(c, x, y); x += widths[i]; });
+      g.textAlign = "center";
+    }else{
+      g.fillText(txt, W / 2, y);
+    }
+  };
+  const wrap = (txt, y, size, color, maxW, lh) => {
+    g.font = size + "px " + serif; g.fillStyle = color; g.textAlign = "center";
+    const chars = [...txt]; let line = "", yy = y;
+    for(const ch of chars){
+      if(g.measureText(line + ch).width > maxW){ g.fillText(line, W / 2, yy); yy += lh; line = ch; }
+      else line += ch;
+    }
+    if(line) g.fillText(line, W / 2, yy);
+    return yy;
+  };
+
+  center("深 水 区", 210, 72, "#e8d0ae", 8);
+  center("越诚实，水越深", 268, 26, "#9c9188", 4);
+
+  g.strokeStyle = "rgba(217,180,143,.3)"; g.beginPath();
+  g.moveTo(W / 2 - 90, 310); g.lineTo(W / 2 + 90, 310); g.stroke();
+
+  center(S.names[0] + "  ×  " + S.names[1], 400, 44, "#f3ece4", 4);
+  center(MODES[S.mode].name + " · " + layerOf(S.reached).name, 456, 24, "#8d847c", 3);
+
+  center("答完了 " + S.answered + " 张牌", 560, 30, "#bdb3aa", 2);
+
+  let y = 650;
+  const maxL = S.maxLayer;
+  const segs = LAYERS.slice(0, maxL).map((L, i) => [L.name, S.reached >= (i + 1)]);
+  const bw = Math.min(150, (W - 200 - (segs.length - 1) * 18) / segs.length);
+  const gap = 18, totalW = segs.length * bw + (segs.length - 1) * gap;
+  let bx = (W - totalW) / 2;
+  g.textAlign = "center";
+  segs.forEach(([name, on]) => {
+    g.fillStyle = on ? "rgba(217,180,143,.85)" : "rgba(255,255,255,.10)";
+    g.fillRect(bx, y, bw, 8);
+    g.font = "22px " + serif;
+    g.fillStyle = on ? "#d9b48f" : "#4a4640";
+    g.fillText(name, bx + bw / 2, y + 46);
+    bx += bw + gap;
+  });
+
+  y = 820;
+  if(a || b){
+    if(a){
+      center(S.names[0] + " 说", y, 24, "#8d847c", 3); y += 56;
+      y = wrap(a, y, 34, "#f3ece4", W - 240, 56) + 70;
+    }
+    if(b){
+      center(S.names[1] + " 说", y, 24, "#8d847c", 3); y += 56;
+      y = wrap(b, y, 34, "#f3ece4", W - 240, 56) + 40;
+    }
+  }else{
+    y = wrap("没有写下也没关系。刚刚说出口的那些，已经算数了。", y, 30, "#8d847c", W - 260, 52);
+  }
+
+  center("— 只属于你们两个的一夜 —", H - 200, 24, "#6f6862", 4);
+  center("同频 · 越说越近", H - 140, 20, "#4a4640", 3);
+
+  cv.toBlob((blob)=>{
+    if(!blob){ flash("保存失败，可以长按截屏"); return; }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const d = new Date();
+    link.download = "同频_" + S.names[0] + "_" + S.names[1] + "_" +
+      (d.getMonth() + 1) + d.getDate() + ".png";
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); link.remove(); }, 1200);
+    flash("已保存 · 想发就发，不想发就自己留着");
+  }, "image/png");
+}
+</script>
+</body>
+</html>

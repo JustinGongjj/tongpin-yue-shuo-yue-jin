@@ -1,0 +1,24 @@
+{
+  "name": "tongpin",
+  "version": "1.0.0",
+  "description": "同频 · 越说越近 —— 双人深度对话卡牌。458 张牌 / 五层递进 / 16 个场景 / 跨局累积的关系档案。",
+  "type": "commonjs",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "test": "node tests/run.js"
+  },
+  "keywords": [
+    "couples",
+    "relationship",
+    "conversation-cards",
+    "intimacy",
+    "psychology",
+    "offline-first",
+    "vanilla-js"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

@@ -1,0 +1,23 @@
+# 依赖
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# 构建与临时产物
+dist/
+*.log
+*.zip
+*.zip.b64
+dl.html
+
+# 本地环境
+.env
+.env.local
